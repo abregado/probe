@@ -5,10 +5,11 @@ end
 
 function love.load()
     server.init()
-    math.randomseed(os.time())
+   
     gs.registerEvents()
     gs.switch(state.menu)
 	
+    math.randomseed(DEBUG_MODE and 1000 or os.time())
     
 end
 

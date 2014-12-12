@@ -1,11 +1,7 @@
 local game = {}
 
-
-game.probes = {}
 game.ents = {}
-game.realEnts = {}
-game.missiles = {}
-
+game.scans = {}
 
 local player = {x=0,y=0}
 
@@ -15,10 +11,11 @@ local lastFrame = 0
 
 local entsVisible = false
 
+game.coverageMap = lg.newCanvas()
+game.scanMap = lg.newCanvas()
+game.tempCan = lg.newCanvas()
+
 function game.init()
-    game.probes = {}
-    game.ents = {}
-    game.missiles = {}
 end
 
 function game:draw()
@@ -29,7 +26,11 @@ function game:draw()
 
     
     for i,v in ipairs(game.probes) do
-        probeLogic.draw(v)
+        --probeLogic.draw(v)
+        if v.target then
+            local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
+            client.drawScanResult(newScan)
+        end
     end
     
     if entsVisible then
@@ -44,11 +45,15 @@ function game:draw()
         lg.circle("fill",v.x,v.y,5,10)
     end
     
+    for i,v in ipairs(game.probes) do
+        client.drawProbeMarker(v.x,v.y)
+    end
+    
     lg.setColor(color.weapons)
     lg.circle("fill",player.x,player.y,10,5)
     lg.circle("line",player.x,player.y,16,30)
     
-    lg.setColor(color.probe)
+    lg.setColor(color.probe) 
     lg.print("Click with the left and right mouse buttons to place probes, and try to locate the 6 objects",5,5)
     
 end
@@ -92,6 +97,24 @@ function game:keypressed(key, isrepeat)
     elseif key == "escape" then
         gs.switch(state.menu)
     end
+end
+
+function game.drawScan(probes)
+    scanMap:clear()
+    lg.setCanvas(game.scanMap)
+    lg.setColor(255,0,0)
+    lg.setLineWidth(1)
+    for i,probe in ipairs(probes) do
+        lg.circle("fill",probe.x,probe.y,probe.detectedMax,100)
+    end
+    lg.setBlendMode("subtractive")
+    for i,probe in ipairs(probes) do
+        lg.circle("fill",probe.x,probe.y,probe.detectedMin,100)
+    end
+    lg.setBlendMode("alpha")
+    lg.setCanvas()
+    lg.setColor(255,255,255,125)
+    lg.draw(game.scanMap)
 end
 
 

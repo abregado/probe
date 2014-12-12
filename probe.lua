@@ -3,9 +3,7 @@ p = {}
 local minAlpha = 65
 local maxAlpha = 255
 
-local coverageMap = lg.newCanvas()
-local scanMap = lg.newCanvas()
-local tempCan = lg.newCanvas()
+
 
 
 function p.new(x,y,scanType)
@@ -45,7 +43,7 @@ function p.new(x,y,scanType)
     o.pingTween = tween.new(o.pingLength,o,{alpha=minAlpha,pingRadius=o.radMax,pingAng=math.pi*2},'linear')
     
     lg.setColor(255,0,0)
-    lg.setCanvas(coverageMap)
+    lg.setCanvas(state.game.coverageMap)
     lg.circle("fill",o.x,o.y,o.radMax,50)
     lg.setCanvas()
     
@@ -54,7 +52,7 @@ end
 
 function p.drawCoverage()
     lg.setColor(255,255,255,30)
-    lg.draw(coverageMap)
+    lg.draw(state.game.coverageMap)
     lg.setColor(255,255,255)
 end
 
@@ -115,23 +113,7 @@ function p.draw(probe)
     lg.draw(tempCan)
 end
 
-function p.drawScan(probes)
-    scanMap:clear()
-    lg.setCanvas(scanMap)
-    lg.setColor(255,0,0)
-    lg.setLineWidth(1)
-    for i,probe in ipairs(probes) do
-        lg.circle("fill",probe.x,probe.y,probe.detectedMax,100)
-    end
-    lg.setBlendMode("subtractive")
-    for i,probe in ipairs(probes) do
-        lg.circle("fill",probe.x,probe.y,probe.detectedMin,100)
-    end
-    lg.setBlendMode("alpha")
-    lg.setCanvas()
-    lg.setColor(255,255,255,125)
-    lg.draw(scanMap)
-end
+
 
 function p.findTarget(probe,ents)
     result = {target=nil,dist=probe.radMax+1}
@@ -141,19 +123,18 @@ function p.findTarget(probe,ents)
             result = {target=v,dist=dist}
         end
     end
-    
-    if result.target then
+    return result.target
+    --[[if result.target then
         p.aquireTarget(probe,result.target)
         return (result.target)
     else
         p.loseTarget(probe)
         return false
-    end
+    end]]
 end
 
 function p.aquireTarget(probe,target)
     if target then
-        target = p.getWrongTarget(probe,target)
         --[[local dist = vl.dist(target.x,target.y,probe.x,probe.y)
         --math.randomseed(probe.seed)
         local minRad = dist-(dist*(probe.accuracy)/100)
@@ -179,49 +160,15 @@ function p.aquireTarget(probe,target)
     end
 end
 
-function p.getWrongTarget(probe,target)
-    local newTarget = {}
-    local dist = vl.dist(target.x,target.y,probe.x,probe.y)
-    --math.randomseed(probe.seed)
-    local minRad = dist-(dist*(probe.accuracy)/100)
-    local maxRad = dist+(dist*(probe.accuracy)/100)
-    local thick = maxRad-minRad
-    probe.detectedThickness = thick
-    probe.detectedRadius = dist
-    probe.detectedRadiusOffset = 0
-    probe.detectedMax = maxRad
-    probe.detectedMin = minRad
-    
-    local ax,ay = target.x-probe.x, target.y-probe.y
-    local vx,vy = vl.normalize(ax,ay)
-    local x,y = vx*probe.radMax,vy*probe.radMax 
-    local posRad = vl.angleTo(vx,vy)
-    local x,y = math.cos(posRad)*probe.radMax, math.sin(posRad)*probe.radMax
-    local leftOff = (math.pi*2)/100*(probe.accuracy/5)
-    probe.detectedAngle = posRad
-    probe.detectedDif = leftOff
-    
-    
-    local rRad = math.random(probe.detectedMax,probe.detectedMin)
-    local dRad = math.random(probe.detectedAngle-probe.detectedDif,probe.detectedAngle+probe.detectedDif)
-    if probe.detectsType then
-        newTarget.sigType = target.sigType
-    else
-        newTarget.sigType = "unknown"
-    end
-    newTarget.sig = target.sig
-    newTarget.x,newTarget.y = (math.cos(dRad)*rRad)+probe.x, (math.sin(rRad)*dRad)+probe.y
-    
-    return newTarget
-end
+
 
 function p.loseTarget(probe)
     probe.target = nil
-    probe.detectedThickness = 0
+    --[[probe.detectedThickness = 0
     probe.detectedRadius = 0
     probe.detectedRadiusOffset = 0
     probe.detectedMax = 0
-    probe.detectedMin = 0
+    probe.detectedMin = 0]]
 end
 
 function p.ping(probe)
@@ -235,7 +182,7 @@ function p.update(probe,ents,dt)
     local complete = probe.pingTween:update(dt)
     
     if complete then
-        p.findTarget(probe,ents)
+        probe.target = server.getNewTarget(probe)
         p.ping(probe)
     end
 end

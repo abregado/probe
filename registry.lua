@@ -1,4 +1,4 @@
-DEBUG_MODE = false
+DEBUG_MODE = true
 
 
 --global declarations
@@ -18,6 +18,7 @@ list = require('buttonlist')
 button = require('button')
 tween = require('tween')
 server = require('server')
+client = require('client')
 
 --game entities
 probeLogic = require('probe')
@@ -47,10 +48,12 @@ sfx = {}
 currentTheme = 2
 
 color = {}
+color.debug = {0,255,0,125}
 color.menuBG = {125,125,255}
 color.gameBG = {0,0,0}
 color.ent = {0,255,0}
 color.probe = {255,0,0}
 color.alpha = {0,0,0,85}
 color.white = {255,255,255}
+color.black = {0,0,0}
 color.weapons = {0,0,255}
