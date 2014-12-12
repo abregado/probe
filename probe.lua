@@ -184,7 +184,13 @@ function p.update(probe,ents,dt)
     if complete then
         probe.target = server.getNewTarget(probe)
         p.ping(probe)
+        if probe.target then
+            local v = probe
+            local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
+            client.drawScanResult(newScan,state.game.scanMap)
+        end
     end
 end
+
 
 return p
