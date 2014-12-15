@@ -1,6 +1,21 @@
 local c = {}
 
+c.ownerID = "unconnected"
+c.playerPos = {x=0,y=0,active=false}
+
 local tempCan = lg.newCanvas()
+
+function c.connect()
+    local player = server.methods.connect()
+    if player then
+        c.playerPos = {x=player.x,y=player.y,active=true}
+        c.ownerID = player.owner
+        print("player ",c.ownerID," connected to server")
+    else
+        print("server denied join request")
+    end
+        
+end
 
 function c.drawProbe(probe)
     lg.setColor(color.alpha)
@@ -53,15 +68,10 @@ function c.drawScanResult(sr)
     local ang1 = detectedAngle+detectedDif+circ
     local ang2 = detectedAngle-detectedDif+circ
 
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3],sr.alpha)
-    lg.setLineWidth(2)
-    local x,y = math.cos(ang1)*detectedMax,math.sin(ang1)*detectedMax
-    lg.line(sr.x,sr.y,sr.x+x,sr.y+y)
-    local x,y = math.cos(ang2)*detectedMax,math.sin(ang2)*detectedMax
-    lg.line(sr.x,sr.y,sr.x+x,sr.y+y)
+    
 
-    lg.setLineWidth(1)
-    lg.circle("fill",sr.tx,sr.ty,10,6)
+    --lg.setLineWidth(1)
+    --lg.circle("fill",sr.tx,sr.ty,10,6)
     
     --lg.setColor(color.debug)
     --lg.circle("fill",sr.x,sr.y,10,5)
@@ -73,10 +83,21 @@ function c.drawScanResult(sr)
 end
 
 function c.drawProbeMarker(x,y)
+    lg.setLineWidth(2)
     lg.setColor(color.probe[1],color.probe[2],color.probe[3])
     lg.circle("fill",x,y,5,3)
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3])
     lg.circle("line",x,y,15,30)
+
+end
+
+function c.addMissile(owner,tx,ty,payload)
+    local mr = server.methods.addMissile(owner,tx,ty,payload)
+    if mr then
+        --table.insert(c.missiles,missile)
+        print("server permitted new missile")
+    else
+        print("server denied missile request")
+    end
 end
 
 return c

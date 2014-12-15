@@ -5,11 +5,11 @@ local maxAlpha = 255
 
 
 
-
-function p.new(x,y,scanType)
+function p.new(owner,x,y,scanType)
     o = {}
     o.x = x
     o.y = y
+    o.owner = owner
     
     --sensor variables THIS NEEDS A ARCHETYPE SYSTEM
     o.scanType = scanType
@@ -184,11 +184,11 @@ function p.update(probe,ents,dt)
     if complete then
         probe.target = server.getNewTarget(probe)
         p.ping(probe)
-        if probe.target then
+        --[[if probe.target then
             local v = probe
             local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
             client.drawScanResult(newScan,state.game.scanMap)
-        end
+        end]]
     end
 end
 

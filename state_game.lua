@@ -1,6 +1,7 @@
 local game = {}
 
 game.ents = {}
+game.missiles = {}
 game.scans = {}
 
 local player = {x=0,y=0}
@@ -10,6 +11,7 @@ local entSpeed = 20
 local lastFrame = 0
 
 local entsVisible = false
+local nextFadeTime = 0
 
 game.coverageMap = lg.newCanvas()
 game.scanMap = lg.newCanvas()
@@ -19,17 +21,18 @@ function game.init()
 end
 
 function game:draw()
+    lg.setCanvas()
     probeLogic.drawCoverage()
-    --probeLogic.drawScan(game.probes)
     
-    
-
+    --[[lg.setBlendMode("additive")
+    lg.draw(game.scanMap)
+    lg.setBlendMode("alpha")]]
     
     for i,v in ipairs(game.probes) do
         --probeLogic.draw(v)
         if v.target then
             local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
-            client.drawScanResult(newScan)
+            client.drawScanResult(newScan,game.scanMap)
         end
     end
     
@@ -41,8 +44,14 @@ function game:draw()
     end
     
     for i,v in ipairs(game.missiles) do
-        lg.setColor(color.weapons)
+        if v.visible then
+            lg.setColor(color.weapons)
+        else
+            lg.setColor(color.probe)
+        end
         lg.circle("fill",v.x,v.y,5,10)
+        lg.line(v.x,v.y,v.tx,v.ty)
+        --lg.print(v.ang,v.x,v.y)
     end
     
     for i,v in ipairs(game.probes) do
@@ -50,19 +59,29 @@ function game:draw()
     end
     
     lg.setColor(color.weapons)
-    lg.circle("fill",player.x,player.y,10,5)
-    lg.circle("line",player.x,player.y,16,30)
+    lg.circle("fill",client.playerPos.x,client.playerPos.y,10,5)
+    lg.circle("line",client.playerPos.x,client.playerPos.y,16,30)
     
     lg.setColor(color.probe) 
     lg.print("Click with the left and right mouse buttons to place probes, and try to locate the 6 objects",5,5)
     
+    
 end
 
+function replacementCanvas(canvas)
+    local temp = lg.newCanvas()
+    lg.setCanvas(temp)
+    lg.setColor(255,255,255,254)
+    lg.draw(canvas)
+    lg.setCanvas()
+    lg.setColor(color.white)
+    return temp
+end
 
 function game:enter(from)
     lg.setBackgroundColor(color.gameBG)
     if from == state.menu then
-
+        client.connect()
     end
 end
 
@@ -73,6 +92,11 @@ end
 function game:update(dt)
     game.ents,game.probes,game.missiles = server.requestUpdate()
     game.realEnts = server.ents
+    --[[local t = os.time()
+    if t > nextFadeTime then
+        game.scanMap = replacementCanvas(game.scanMap)
+        nextFadeTime = t+0.1
+    end]]
 end
 
 
@@ -85,9 +109,11 @@ end
 -- equiv to onTouchBegan
 function game:mousepressed(x, y, button)
     if button == "l" then
-        table.insert(game.probes,probeLogic.new(x,y,"range"))
+        client.addMissile(client.ownerID,x,y,"probe")
+        --table.insert(game.probes,probeLogic.new(x,y,"range"))
     elseif button == "r" then
-        table.insert(game.probes,probeLogic.new(x,y,"direction"))
+        client.addMissile(client.ownerID,x,y,"torpedo")
+        --table.insert(game.probes,probeLogic.new(x,y,"direction"))
     end
 end
 

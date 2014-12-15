@@ -1,4 +1,4 @@
-DEBUG_MODE = true
+DEBUG_MODE = false
 
 
 --global declarations
@@ -17,6 +17,7 @@ gs = require('hump-master/gamestate')
 list = require('buttonlist')
 button = require('button')
 tween = require('tween')
+
 server = require('server')
 client = require('client')
 
