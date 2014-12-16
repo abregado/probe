@@ -5,9 +5,9 @@ function b.new(x,y)
     o.x=x
     o.y=y
     
-    o.maxRad=100
+    o.maxRad=15
     o.radius=0
-    o.blastTime=2
+    o.blastTime=1
     o.isDead = false
     o.entType = "blast"
     o.visible = true
@@ -33,9 +33,24 @@ function b.draw(blast)
     end    
 end
 
-function b.update(blast,dt)
+function b.update(blast,ents,dt)
     local complete = blast.tween:update(dt)
+    
+    for i,v in ipairs(ents) do
+        if b.isInBlast(v.x,v.y,blast) and v.entType ~= "blast" then
+            print("entity destroyed")
+            v.isDead = true
+        end
+    end
+    
     if complete then blast.isDead = true end
+    
+    
+end
+
+function b.isInBlast(x,y,blast)
+    local result = vl.dist(x,y,blast.x,blast.y) <= blast.radius
+    return result
 end
 
 return b

@@ -1,6 +1,6 @@
 m = {}
 
-local maxVelo = 1000000
+local maxVelo = 10000000
 local speedMod = 200
 
 function m.new(owner,x,y,tx,ty,payload)
@@ -15,12 +15,12 @@ function m.new(owner,x,y,tx,ty,payload)
     o.payload = payload
     if payload == "torpedo" then
         o.cb = m.explode
-        o.accel = 10000
+        o.accel = 100000
         o.v = 0
         o.visible = true
     else
         o.cb = m.deploy
-        o.accel = 100
+        o.accel = 1000
         o.v = 0
         o.visible = false
     end

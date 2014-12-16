@@ -1,4 +1,4 @@
-DEBUG_MODE = true
+DEBUG_MODE = false
 
 
 
@@ -30,7 +30,7 @@ missile = require('missile')
 
 
 fonts = {}
-fonts[1] = lg.newFont(10)
+fonts[1] = lg.newFont(14)
 lg.setFont(fonts[1])
 
 --graphics globals

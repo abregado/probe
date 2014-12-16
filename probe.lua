@@ -10,6 +10,7 @@ function p.new(owner,x,y,scanType)
     o.x = x
     o.y = y
     o.owner = owner
+    o.battery = 10
     o.entType="probe"
     
     --sensor variables THIS NEEDS A ARCHETYPE SYSTEM
@@ -17,12 +18,14 @@ function p.new(owner,x,y,scanType)
     if scanType == "range" then
         o.radMax = 200
         o.radMin = 10
-        o.accuracy = 15
+        o.accuracyD = 40
+        o.accuracyR = 1
         o.pingLength = 1
     else
         o.radMax = 600
         o.radMin = 100
-        o.accuracy = 30
+        o.accuracyD = 3
+        o.accuracyR = 30
         o.pingLength = 3
     end
     
@@ -43,12 +46,16 @@ function p.new(owner,x,y,scanType)
     o.pingAng = 0
     o.pingTween = tween.new(o.pingLength,o,{alpha=minAlpha,pingRadius=o.radMax,pingAng=math.pi*2},'linear')
     
-    lg.setColor(255,0,0)
-    lg.setCanvas(state.game.coverageMap)
-    lg.circle("fill",o.x,o.y,o.radMax,50)
-    lg.setCanvas()
+    p.addCoverage(o)
     
     return o
+end
+
+function p.addCoverage(probe)
+    lg.setColor(color.probe)
+    lg.setCanvas(state.game.coverageMap)
+    lg.circle("fill",probe.x,probe.y,probe.radMax,50)
+    lg.setCanvas()
 end
 
 function p.drawCoverage()
@@ -179,14 +186,18 @@ end
 function p.update(probe,ents,dt)
     local complete = probe.pingTween:update(dt)
     
-    if complete then
+    if complete and probe.battery > 0 then
         probe.target = server.getNewTarget(probe)
         p.ping(probe)
+        probe.battery = probe.battery - 1
         --[[if probe.target then
             local v = probe
             local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
             client.drawScanResult(newScan,state.game.scanMap)
         end]]
+    elseif complete and probe.battery == 0 then
+        probe.isDead = true
+        
     end
 end
 

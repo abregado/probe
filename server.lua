@@ -12,7 +12,7 @@ local world = {}
 world.w = lg.getWidth()
 world.h = lg.getHeight()
 
-
+local mustRedraw = false
 local player = {x=0,y=0}
 
 local entSpeed = 20
@@ -24,8 +24,13 @@ local entsVisible = false
 s.methods = {}
 
 function s.requestUpdate(owner)
-
-    return s.ents
+    local ownerSigs = {}
+    for i,v in ipairs(s.ents) do
+        if v.owner == owner or v.visible then
+            table.insert(ownerSigs,v)
+        end
+    end
+    return ownerSigs,mustRedraw
 end
 
 function s.methods.connect()
@@ -85,7 +90,7 @@ function s.newPlayer(owner)
 end 
 
 function s.update(dt)
-    
+    mustRedraw = false
 
     for i,v in ipairs(s.ents) do
         if v.entType=="probe" then
@@ -95,7 +100,7 @@ function s.update(dt)
                 v:cb()
             end
         elseif v.entType == "blast" then
-            blast.update(v,dt)
+            blast.update(v,s.ents,dt)
         elseif v.entType == "sig" then
             if v.isMoving then
                 v.x = v.x-(entSpeed/dt/10000)
@@ -107,6 +112,7 @@ function s.update(dt)
     for i,v in ipairs(s.ents) do
         if v.isDead then
             table.remove(s.ents,i)
+            mustRedraw = true
         end
     end
 end
@@ -118,15 +124,15 @@ function s.getNewTarget(probe)
     if target then
         newTarget = {}
         local dist = vl.dist(target.x,target.y,probe.x,probe.y)
-        local minRad = dist-(dist*(probe.accuracy)/100)
-        local maxRad = dist+(dist*(probe.accuracy)/100)
+        local minRad = dist-(dist*(probe.accuracyD)/100)
+        local maxRad = dist+(dist*(probe.accuracyD)/100)
         
         local ax,ay = target.x-probe.x, target.y-probe.y
         local vx,vy = vl.normalize(ax,ay)
         local x,y = vx*probe.radMax,vy*probe.radMax 
         local posRad = vl.angleTo(vx,vy)+circ
         local x,y = math.cos(posRad)*probe.radMax, math.sin(posRad)*probe.radMax
-        local leftOff = (math.pi*2)/100*(probe.accuracy/5)
+        local leftOff = (math.pi*2)/100*(probe.accuracyR)
         
         local rRad = math.random(minRad,maxRad)
         local minAng = posRad-leftOff+circ
@@ -141,7 +147,6 @@ function s.getNewTarget(probe)
     
     return newTarget
 end
-
 
 function s.init()
     local r1 = math.random()

@@ -53,8 +53,8 @@ function c.drawScanResult(sr)
     local dist = vl.dist(sr.tx,sr.ty,sr.x,sr.y)
     
         --math.randomseed(probe.seed)
-    local minRad = dist-(dist*(sr.accuracy)/100)
-    local maxRad = dist+(dist*(sr.accuracy)/100)
+    local minRad = dist-(dist*(sr.accuracyD)/100)
+    local maxRad = dist+(dist*(sr.accuracyD)/100)
     local thick = maxRad-minRad
     local detectedThickness = thick
     local detectedRadius = dist
@@ -67,7 +67,7 @@ function c.drawScanResult(sr)
     local x,y = vx*sr.rMax,vy*sr.rMax 
     local posRad = vl.angleTo(vx,vy)
     local x,y = math.cos(posRad)*maxRad, math.sin(posRad)*maxRad
-    local leftOff = (math.pi*2)/100*(sr.accuracy/5)
+    local leftOff = (math.pi*2)/100*(sr.accuracyR)
     detectedAngle = posRad
     detectedDif = leftOff
     
@@ -102,6 +102,15 @@ function c.drawProbeMarker(x,y)
     lg.circle("line",x,y,15,30)
 
 end
+
+function c.redrawCoverage()
+    state.game.coverageMap:clear()
+    for i,v in ipairs(state.game.ents) do
+        if v.entType == "probe" then
+            probeLogic.addCoverage(v)
+        end
+    end
+end 
 
 function c.addMissile(owner,tx,ty,payload)
     local mr = server.methods.addMissile(owner,tx,ty,payload)

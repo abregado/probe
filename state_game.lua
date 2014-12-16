@@ -8,9 +8,15 @@ local player = {x=0,y=0}
 
 local entSpeed = 20
 
-local currentProbe = "long"
+local probeTypes = {}
+probeTypes[1] = {name="long",desc="Long Range Probe"}
+probeTypes[2] = {name="torpedo",desc="Active Torpedo"}
+probeTypes[3] = {name="range",desc="Precise Probe"}
+
+local currentProbe = 1
 
 local lastFrame = 0
+local mustRedraw = false
 
 local entsVisible = false
 local nextFadeTime = 0
@@ -25,6 +31,7 @@ end
 function game:draw()
     lg.setCanvas()
     probeLogic.drawCoverage()
+    lg.setFont(fonts[1])
     
     --[[lg.setBlendMode("additive")
     lg.draw(game.scanMap)
@@ -41,7 +48,7 @@ function game:draw()
     for i,v in ipairs(game.ents) do
         if v.entType=="probe" then
             if v.target then
-                local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
+                local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracyD=v.accuracyD,accuracyR=v.accuracyR,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
                 client.drawScanResult(newScan,game.scanMap)
             end
         end
@@ -53,6 +60,9 @@ function game:draw()
     
     lg.setColor(color.probe) 
     lg.print("Click with the left and right mouse buttons to place probes, and try to locate the 6 objects",5,5)
+    lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,30)
+    lg.print("Signatures in Area: "..#server.ents,5,55)
+    
     
     
 end
@@ -79,8 +89,12 @@ function game:leave()
 end
 
 function game:update(dt)
-    game.ents = server.requestUpdate()
-    game.realEnts = server.ents
+    mustRedraw = false
+    game.ents,mustRedraw = server.requestUpdate(client.ownerID)
+    --game.realEnts = server.ents
+    if mustRedraw then
+        client.redrawCoverage()
+    end
     --[[local t = os.time()
     if t > nextFadeTime then
         game.scanMap = replacementCanvas(game.scanMap)
@@ -98,10 +112,10 @@ end
 -- equiv to onTouchBegan
 function game:mousepressed(x, y, button)
     if button == "l" then
-        client.addMissile(client.ownerID,x,y,currentProbe)
+        --client.addMissile(client.ownerID,x,y,currentProbe)
         --table.insert(game.probes,probeLogic.new(x,y,"range"))
     elseif button == "r" then
-        client.addMissile(client.ownerID,x,y,"torpedo")
+        client.addMissile(client.ownerID,x,y,probeTypes[currentProbe].name)
         --table.insert(game.probes,probeLogic.new(x,y,"direction"))
     end
 end
@@ -112,9 +126,11 @@ function game:keypressed(key, isrepeat)
     elseif key == "escape" then
         gs.switch(state.menu)
     elseif key == "1" then
-        currentProbe = "range"
+        currentProbe = 1
     elseif key == "2" then
-        currentProbe = "long"
+        currentProbe = 2
+    elseif key == "3" then
+        currentProbe = 3
     end
 end
 
