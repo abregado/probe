@@ -55,14 +55,20 @@ function game:draw()
     end
     
     lg.setColor(color.weapons)
-    lg.circle("fill",client.playerPos.x,client.playerPos.y,10,5)
-    lg.circle("line",client.playerPos.x,client.playerPos.y,16,30)
+    lg.circle("fill",client.playerPos.x,client.playerPos.y,3,3)
+    lg.circle("line",client.playerPos.x,client.playerPos.y,9,30)
     
     lg.setColor(color.probe) 
-    lg.print("Click with the left and right mouse buttons to place probes, and try to locate the 6 objects",5,5)
-    lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,30)
-    lg.print("Targets in Area: "..server.countSigs(client.ownerID),5,55)
-    lg.print("Launch Tubes Available: "..countTubes(),5,80)
+    lg.print("Click with the right mouse buttons to launch probes and try to locate the 6 objects",5,5)
+    lg.print("Use the number keys to change Probe type",5,30)
+    lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,55)
+    lg.print("Targets in Area: "..server.countSigs(client.ownerID),5,80)
+    if countTubes() > 0 then
+        lg.setColor(color.debug)
+    else
+        lg.setColor(color.probe)
+    end
+    lg.print("Launch Tubes Available: "..countTubes(),5,105)
     
     
     

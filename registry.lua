@@ -53,7 +53,7 @@ sfx = {}
 currentTheme = 2
 
 color = {}
-color.debug = {0,255,0,125}
+color.debug = {0,255,0}
 color.menuBG = {125,125,255}
 color.gameBG = {0,0,0}
 color.ent = {0,255,0}

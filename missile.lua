@@ -70,7 +70,9 @@ function m.draw(v)
     else
         lg.setColor(color.probe)
     end
-    lg.circle("fill",v.x,v.y,5,10)
+    lg.setLineWidth(1)
+    lg.circle("fill",v.x,v.y,2,10)
+    lg.line(v.x,v.y,v.x-(v.dx*v.v/100),v.y-(v.dy*v.v/100))
     --lg.line(v.x,v.y,v.tx,v.ty)
 end
 

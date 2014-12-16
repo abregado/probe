@@ -96,10 +96,10 @@ function c.drawScanResult(sr)
 end
 
 function c.drawProbeMarker(x,y)
-    lg.setLineWidth(2)
+    lg.setLineWidth(1)
     lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-    lg.circle("fill",x,y,5,3)
-    lg.circle("line",x,y,15,30)
+    lg.circle("fill",x,y,2,3)
+    lg.circle("line",x,y,5,30)
 
 end
 
