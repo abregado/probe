@@ -2,6 +2,7 @@ DEBUG_MODE = false
 
 
 
+
 --global declarations
 la = love.audio
 lg = love.graphics

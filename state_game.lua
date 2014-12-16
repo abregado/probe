@@ -5,13 +5,13 @@ game.missiles = {}
 game.scans = {}
 
 local player = {x=0,y=0}
-
+local tubes = {{v = 0},{v = 0},{v = 0},{v = 0}}
 local entSpeed = 20
 
 local probeTypes = {}
-probeTypes[1] = {name="long",desc="Long Range Probe"}
-probeTypes[2] = {name="torpedo",desc="Active Torpedo"}
-probeTypes[3] = {name="range",desc="Precise Probe"}
+probeTypes[1] = {name="long",desc="Long Range Probe",cost=8}
+probeTypes[2] = {name="torpedo",desc="Active Torpedo",cost=20}
+probeTypes[3] = {name="range",desc="Precise Probe",cost=5}
 
 local currentProbe = 1
 
@@ -61,10 +61,38 @@ function game:draw()
     lg.setColor(color.probe) 
     lg.print("Click with the left and right mouse buttons to place probes, and try to locate the 6 objects",5,5)
     lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,30)
-    lg.print("Signatures in Area: "..#server.ents,5,55)
+    lg.print("Targets in Area: "..server.countSigs(client.ownerID),5,55)
+    lg.print("Launch Tubes Available: "..countTubes(),5,80)
     
     
     
+end
+
+function countTubes()
+    local result = 0
+    for i,v in pairs(tubes) do
+        if v.v==0 then
+          result = result +1
+        end
+    end
+    return result
+end
+
+function getEmptyTube()
+    for i,v in ipairs(tubes) do
+        if v.v==0 then
+            return v
+        end
+    end
+    return false
+end
+
+function setTube(tube,value)
+    for i,v in ipairs(tubes) do
+        if tube == v then
+            v.v=value
+        end
+    end
 end
 
 function replacementCanvas(canvas)
@@ -81,6 +109,7 @@ function game:enter(from)
     lg.setBackgroundColor(color.gameBG)
     if from == state.menu then
         client.connect()
+        tubes = {{v = 0},{v = 0},{v = 0},{v = 0}}
     end
 end
 
@@ -95,6 +124,15 @@ function game:update(dt)
     if mustRedraw then
         client.redrawCoverage()
     end
+    
+    for i,v in ipairs(tubes) do
+        if v.v >dt then
+            v.v=v.v-dt
+        elseif v.v < dt then
+            v.v=0            
+        end
+    end
+    
     --[[local t = os.time()
     if t > nextFadeTime then
         game.scanMap = replacementCanvas(game.scanMap)
@@ -111,11 +149,13 @@ end
 
 -- equiv to onTouchBegan
 function game:mousepressed(x, y, button)
+    local tube = getEmptyTube()
     if button == "l" then
         --client.addMissile(client.ownerID,x,y,currentProbe)
         --table.insert(game.probes,probeLogic.new(x,y,"range"))
-    elseif button == "r" then
+    elseif button == "r" and tube then
         client.addMissile(client.ownerID,x,y,probeTypes[currentProbe].name)
+        setTube(tube,probeTypes[currentProbe].cost)
         --table.insert(game.probes,probeLogic.new(x,y,"direction"))
     end
 end

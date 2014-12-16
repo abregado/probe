@@ -78,6 +78,16 @@ function s.methods.addBlast(x,y)
     table.insert(s.ents,nb)
 end
 
+function s.countSigs(owner)
+    local result = 0
+    for i,v in ipairs(s.ents) do
+        if v.owner ~= owner then
+            result = result +1
+        end
+    end
+    return result
+end
+
 function s.newPlayer(owner)
     local newEnt = nil
     local rx = math.random(0,world.w)
