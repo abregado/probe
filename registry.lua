@@ -1,4 +1,5 @@
-DEBUG_MODE = false
+DEBUG_MODE = true
+
 
 
 --global declarations
@@ -23,6 +24,8 @@ client = require('client')
 
 --game entities
 probeLogic = require('probe')
+blast = require('blast')
+missile = require('missile')
 
 
 

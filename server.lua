@@ -1,6 +1,5 @@
 local s = {}
 
-local missile = require('missile')
 
 s.ents ={}
 s.probes = {}
@@ -26,7 +25,7 @@ s.methods = {}
 
 function s.requestUpdate(owner)
 
-    return s.ents,s.probes,s.missiles
+    return s.ents
 end
 
 function s.methods.connect()
@@ -57,7 +56,7 @@ function s.methods.addMissile(owner,tx,ty,payload)
     local p = s.findPlayerShip(owner)
     if p then
         local m = missile.new(owner,p.x,p.y,tx,ty,payload)
-        table.insert(s.missiles,m)
+        table.insert(s.ents,m)
         return true
     else
         return false
@@ -65,8 +64,13 @@ function s.methods.addMissile(owner,tx,ty,payload)
 end
 
 function s.methods.addProbe(owner,x,y,probeModel)
-    local p = probeLogic.new(owner,x,y,"range")
-    table.insert(s.probes,p)
+    local p = probeLogic.new(owner,x,y,probeModel)
+    table.insert(s.ents,p)
+end
+
+function s.methods.addBlast(x,y)
+    local nb = blast.new(x,y)
+    table.insert(s.ents,nb)
 end
 
 function s.newPlayer(owner)
@@ -81,26 +85,28 @@ function s.newPlayer(owner)
 end 
 
 function s.update(dt)
-    for i,v in ipairs(s.probes) do
-        probeLogic.update(v,s.ents,dt)
-    end
     
-    for i,v in ipairs(s.missiles) do
-        if missile.update(v,dt) then
-            v:cb()
-        end
-    end
-    
+
     for i,v in ipairs(s.ents) do
-        if v.isMoving then
-            v.x = v.x-(entSpeed/dt/10000)
+        if v.entType=="probe" then
+            probeLogic.update(v,s.ents,dt)
+        elseif v.entType == "missile" then
+            if missile.update(v,dt) then
+                v:cb()
+            end
+        elseif v.entType == "blast" then
+            blast.update(v,dt)
+        elseif v.entType == "sig" then
+            if v.isMoving then
+                v.x = v.x-(entSpeed/dt/10000)
+            end
             if v.x < 0 then v.x = v.x + screen.w end
         end
     end
     
-    for i,v in ipairs(s.missiles) do
+    for i,v in ipairs(s.ents) do
         if v.isDead then
-            table.remove(s.missiles,i)
+            table.remove(s.ents,i)
         end
     end
 end
@@ -142,44 +148,36 @@ function s.init()
     local r2 = math.random()
     local r3 = math.random()
     local r4 = math.random()
-    if DEBUG_MODE then
-        local newEnt = {x=screen.w/2,y=screen.h/2,isMoving=true,sig=5}
+
+    for i=1,3 do
+        --r1 = math.random(1,screen.w)
+        r1 = screen.w
+        r2 = math.random(1,screen.h)
+
+        local newEnt = {x=r1,y=r2,isMoving=true,sig=8,entType="sig",owner="npc"}
         table.insert(s.ents,newEnt)
-        table.insert(s.probes,probeLogic.new(newEnt.x-50,newEnt.y-50,"range"))
-    else
-            
-        
-        for i=1,3 do
-            --r1 = math.random(1,screen.w)
-            r1 = screen.w
-            r2 = math.random(1,screen.h)
-            
-            local newEnt = {x=r1,y=r2,isMoving=true,sig=8}
-            table.insert(s.ents,newEnt)
-        end
-        for i=1,3 do
-            r1 = math.random(1,screen.w)
-            r2 = math.random(1,screen.h)
-            
-            local newEnt = {x=r1,y=r2,isMoving=false,sig=5}
-            table.insert(s.ents,newEnt)
-        end
-        
+    end
+
+    for i=1,3 do
         r1 = math.random(1,screen.w)
         r2 = math.random(1,screen.h)
+
+        local newEnt = {x=r1,y=r2,isMoving=false,sig=5,entType="sig",owner="npc"}
+        table.insert(s.ents,newEnt)
     end
-    
+
     --add random missiles
     for i=1,3 do
         r1 = math.random(1,screen.w)
         r2 = math.random(1,screen.h)
         r3 = math.random(1,screen.w)
         r4 = math.random(1,screen.h)
-        
+
         local newM = missile.new(0,r1,r2,r3,r4,"torpedo")
         table.insert(s.missiles,newM)
     end
-        
+    
+    print("server initialized")  
 end
 
 return s

@@ -9,6 +9,7 @@ function m.new(owner,x,y,tx,ty,payload)
     o.x,o.y,o.tx,o.ty = x,y,tx,ty
     o.dx,o.dy = vl.normalize(tx-x,ty-y)
     o.isDead = false
+    o.entType="missile"
     
     
     o.payload = payload
@@ -31,13 +32,14 @@ end
 function m:explode()
     --run callback and clean self up
     print("missiles arrived")
+    server.methods.addBlast(self.x,self.y)
     self.isDead = true
 end
 
 function m:deploy()
     --run callback and clean self up
     print("probe deployment successful")
-    server.methods.addProbe(self.owner,self.x,self.y,"range")
+    server.methods.addProbe(self.owner,self.x,self.y,self.payload)
     self.isDead = true
 end
 
@@ -60,6 +62,16 @@ function m.update(missile,dt)
     
     --check arrival
     
+end
+
+function m.draw(v)
+    if v.visible then
+        lg.setColor(color.weapons)
+    else
+        lg.setColor(color.probe)
+    end
+    lg.circle("fill",v.x,v.y,5,10)
+    --lg.line(v.x,v.y,v.tx,v.ty)
 end
 
 function m.getClientMissile(missile)

@@ -8,6 +8,8 @@ local player = {x=0,y=0}
 
 local entSpeed = 20
 
+local currentProbe = "long"
+
 local lastFrame = 0
 
 local entsVisible = false
@@ -28,34 +30,21 @@ function game:draw()
     lg.draw(game.scanMap)
     lg.setBlendMode("alpha")]]
     
-    for i,v in ipairs(game.probes) do
-        --probeLogic.draw(v)
-        if v.target then
-            local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
-            client.drawScanResult(newScan,game.scanMap)
+    for i,v in ipairs(game.ents) do
+        if v.entType == "sig" and entsVisible then
+            client.drawEnt(v)
+        elseif v.entType ~= "sig" then 
+            client.drawEnt(v)
         end
     end
     
-    if entsVisible then
-        for i,v in ipairs(game.ents) do
-            lg.setColor(color.ent)
-            lg.circle("fill",v.x,v.y,5,10)
+    for i,v in ipairs(game.ents) do
+        if v.entType=="probe" then
+            if v.target then
+                local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
+                client.drawScanResult(newScan,game.scanMap)
+            end
         end
-    end
-    
-    for i,v in ipairs(game.missiles) do
-        if v.visible then
-            lg.setColor(color.weapons)
-        else
-            lg.setColor(color.probe)
-        end
-        lg.circle("fill",v.x,v.y,5,10)
-        lg.line(v.x,v.y,v.tx,v.ty)
-        --lg.print(v.ang,v.x,v.y)
-    end
-    
-    for i,v in ipairs(game.probes) do
-        client.drawProbeMarker(v.x,v.y)
     end
     
     lg.setColor(color.weapons)
@@ -90,7 +79,7 @@ function game:leave()
 end
 
 function game:update(dt)
-    game.ents,game.probes,game.missiles = server.requestUpdate()
+    game.ents = server.requestUpdate()
     game.realEnts = server.ents
     --[[local t = os.time()
     if t > nextFadeTime then
@@ -109,7 +98,7 @@ end
 -- equiv to onTouchBegan
 function game:mousepressed(x, y, button)
     if button == "l" then
-        client.addMissile(client.ownerID,x,y,"probe")
+        client.addMissile(client.ownerID,x,y,currentProbe)
         --table.insert(game.probes,probeLogic.new(x,y,"range"))
     elseif button == "r" then
         client.addMissile(client.ownerID,x,y,"torpedo")
@@ -122,6 +111,10 @@ function game:keypressed(key, isrepeat)
         entsVisible = not entsVisible
     elseif key == "escape" then
         gs.switch(state.menu)
+    elseif key == "1" then
+        currentProbe = "range"
+    elseif key == "2" then
+        currentProbe = "long"
     end
 end
 

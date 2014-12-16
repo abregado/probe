@@ -17,6 +17,19 @@ function c.connect()
         
 end
 
+function c.drawEnt(ent)
+    if ent.entType == "blast" then
+        blast.draw(ent)
+    elseif ent.entType == "probe" then
+        c.drawProbeMarker(ent.x,ent.y)
+    elseif ent.entType == "missile" then
+        missile.draw(ent)
+    elseif ent.entType == "sig" then
+        lg.setColor(color.ent)
+        lg.circle("fill",ent.x,ent.y,5,10)
+    end
+end
+
 function c.drawProbe(probe)
     lg.setColor(color.alpha)
     lg.circle("line",probe.x,probe.y,probe.pingRadius,100)

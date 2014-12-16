@@ -10,6 +10,7 @@ function p.new(owner,x,y,scanType)
     o.x = x
     o.y = y
     o.owner = owner
+    o.entType="probe"
     
     --sensor variables THIS NEEDS A ARCHETYPE SYSTEM
     o.scanType = scanType
@@ -26,13 +27,13 @@ function p.new(owner,x,y,scanType)
     end
     
     --these are set at each ping
-    o.detectedThickness = 0
+    --[[o.detectedThickness = 0
     o.detectedRadius = 0
     o.detectedAngle = 0
     o.detectedDif = 0
     o.detectedRadiusOffset = 0
     o.detectedMax = 0
-    o.detectedMin = 0
+    o.detectedMin = 0]]
     
     o.target = nil
     o.sigType = "probe"
@@ -118,19 +119,16 @@ end
 function p.findTarget(probe,ents)
     result = {target=nil,dist=probe.radMax+1}
     for i,v in ipairs(ents) do
-        local dist = vl.dist(v.x,v.y,probe.x,probe.y)
-        if  dist <= result.dist and dist > probe.radMin then
-            result = {target=v,dist=dist}
+        if v.owner == probe.owner then
+            --dont detect probes
+        else
+            local dist = vl.dist(v.x,v.y,probe.x,probe.y)
+            if  dist <= result.dist and dist > probe.radMin then
+                result = {target=v,dist=dist}
+            end
         end
     end
     return result.target
-    --[[if result.target then
-        p.aquireTarget(probe,result.target)
-        return (result.target)
-    else
-        p.loseTarget(probe)
-        return false
-    end]]
 end
 
 function p.aquireTarget(probe,target)
