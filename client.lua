@@ -1,7 +1,7 @@
 local c = {}
 
 c.ownerID = "unconnected"
-c.playerPos = {x=0,y=0,active=false}
+c.playerPos = {x=0,y=0,active=false,ship=nil}
 
 local tempCan = lg.newCanvas()
 
@@ -21,7 +21,7 @@ function c.drawEnt(ent)
     if ent.entType == "blast" then
         blast.draw(ent)
     elseif ent.entType == "probe" then
-        c.drawProbeMarker(ent.x,ent.y)
+        c.drawProbeMarker(ent.x,ent.y,ent.scanType)
     elseif ent.entType == "missile" then
         missile.draw(ent)
     elseif ent.entType == "sig" then
@@ -72,7 +72,7 @@ function c.drawScanResult(sr)
     detectedAngle = posRad
     detectedDif = leftOff
     
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3],sr.alpha)
+    lg.setColor(color.scan[1],color.scan[2],color.scan[3],sr.alpha)
     lg.arc("fill",sr.x,sr.y,detectedMax,detectedAngle-detectedDif+circ,detectedAngle+detectedDif+circ,50)
     lg.setColor(color.white)
     lg.setBlendMode("subtractive")
@@ -96,25 +96,27 @@ function c.drawScanResult(sr)
     lg.draw(tempCan)
 end
 
-function c.drawProbeMarker(x,y)
-    lg.setLineWidth(1)
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-    lg.circle("fill",x,y,2,3)
-    lg.circle("line",x,y,5,30)
+function c.drawProbeMarker(x,y,variant)
+    if variant == "long" then
+        lg.setLineWidth(1)
+        lg.setColor(color.probe[1],color.probe[2],color.probe[3])
+        lg.circle("fill",x,y,4,5)
+        lg.circle("line",x,y,7,30)
+    else
+        lg.setLineWidth(1)
+        lg.setColor(color.probe[1],color.probe[2],color.probe[3])
+        lg.circle("fill",x,y,2,3)
+        lg.circle("line",x,y,5,30)
+    end
 
 end
 
-function c.redrawCoverage()
-    state.game.coverageMap:clear()
-    for i,v in ipairs(state.game.ents) do
-        if v.entType == "probe" then
-            probeLogic.addCoverage(v)
-        end
-    end
-end 
+function c.givePlayerMovementCommand(tx,ty)
+    server.methods.playerShipMoveCommand(c.ownerID,tx,ty)
+end
 
-function c.addMissile(owner,tx,ty,payload)
-    local mr = server.methods.addMissile(owner,tx,ty,payload)
+function c.addMissile(tx,ty,payload)
+    local mr = server.methods.addMissile(c.ownerID,tx,ty,payload)
     if mr then
         --table.insert(c.missiles,missile)
         print("server permitted new missile")

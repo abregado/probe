@@ -13,11 +13,11 @@ function p.new(owner,x,y,scanType)
     
     o.entType="probe"
     
-    --sensor variables THIS NEEDS A ARCHETYPE SYSTEM
+    --sensor variables THIS NEEDS A ARCHETYPE SYSTEM currently "range" and "long" work
     o.scanType = scanType
     if scanType == "range" then
         o.radMax = 200
-        o.radMin = 10
+        o.radMin = 50
         o.accuracyD = 30
         o.accuracyR = 2
         o.pingLength = 1
@@ -48,89 +48,15 @@ function p.new(owner,x,y,scanType)
     o.pingAng = 0
     o.pingTween = tween.new(o.pingLength,o,{alpha=minAlpha,pingRadius=o.radMax,pingAng=math.pi*2},'linear')
     
-    p.addCoverage(o)
-    
     return o
 end
-
-function p.addCoverage(probe)
-    lg.setColor(color.probe)
-    lg.setCanvas(state.game.coverageMap)
-    lg.circle("fill",probe.x,probe.y,probe.radMax,50)
-    lg.setCanvas()
-end
-
-function p.drawCoverage()
-    lg.setColor(255,255,255,30)
-    lg.draw(state.game.coverageMap)
-    lg.setColor(255,255,255)
-end
-
-function p.draw(probe)
-    tempCan:clear()
-    lg.setCanvas(tempCan)
-    local circ = math.pi*2
-    
-    
-
-
-    if probe.target then
-        lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-        local dist = vl.dist(probe.x,probe.y,probe.target.x,probe.target.y)
-        --lg.circle("line",probe.x,probe.y,dist,100)
-        --if dist > probe.pingRadius then dist = probe.pingRadius end
-        --lg.circle("line",probe.x,probe.y,probe.detectedRadius,100)
-        
-    --elseif probe.target and probe.scanType == "direction" then
-        lg.setColor(color.probe[1],color.probe[2],color.probe[3],probe.alpha)
-        lg.arc("fill",probe.x,probe.y,probe.detectedMax,probe.detectedAngle-probe.detectedDif+circ,probe.detectedAngle+probe.detectedDif+circ,50)
-        --lg.arc("fill",x,y,rad,ang1,ang2,segs)
-        lg.setColor(color.white)
-        lg.setBlendMode("subtractive")
-        lg.circle("fill",probe.x,probe.y,probe.detectedMin,100)
-        lg.setBlendMode("alpha")
-        lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-        local ang1 = probe.detectedAngle+probe.detectedDif+circ
-        local ang2 = probe.detectedAngle-probe.detectedDif+circ
-        
-        lg.setColor(color.probe[1],color.probe[2],color.probe[3],probe.alpha)
-        lg.setLineWidth(2)
-        local x,y = math.cos(ang1)*probe.detectedMax,math.sin(ang1)*probe.detectedMax
-        lg.line(probe.x,probe.y,probe.x+x,probe.y+y)
-        local x,y = math.cos(ang2)*probe.detectedMax,math.sin(ang2)*probe.detectedMax
-        lg.line(probe.x,probe.y,probe.x+x,probe.y+y)
-        
-        lg.setLineWidth(1)
-        lg.circle("fill",probe.target.x,probe.target.y,probe.target.sig,6)
-        
-        
-        
-    end
-    
-    lg.setColor(color.alpha)
-    lg.circle("line",probe.x,probe.y,probe.pingRadius,100)
-    lg.circle("line",probe.x,probe.y,probe.pingRadius+3,100)
-    lg.circle("line",probe.x,probe.y,probe.pingRadius+5,100)
-    
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-    lg.circle("fill",probe.x,probe.y,5,3)
-    lg.setColor(color.probe[1],color.probe[2],color.probe[3])
-    lg.circle("line",probe.x,probe.y,15,30)
-    
-    lg.setLineWidth(1)
-    lg.setCanvas()
-    lg.setColor(255,255,255,minAlpha)
-    lg.draw(tempCan)
-end
-
-
 
 function p.findTarget(probe,ents)
     result = {target=nil,dist=probe.radMax+1}
     for i,v in ipairs(ents) do
         if v.owner == probe.owner then
             --dont detect probes
-        else
+        elseif v.entType=="sig" or v.entType=="asteroid" or v.entType == "debris" then
             local dist = vl.dist(v.x,v.y,probe.x,probe.y)
             if  dist <= result.dist and dist > probe.radMin then
                 result = {target=v,dist=dist}
@@ -142,27 +68,6 @@ end
 
 function p.aquireTarget(probe,target)
     if target then
-        --[[local dist = vl.dist(target.x,target.y,probe.x,probe.y)
-        --math.randomseed(probe.seed)
-        local minRad = dist-(dist*(probe.accuracy)/100)
-        local maxRad = dist+(dist*(probe.accuracy)/100)
-        local thick = maxRad-minRad
-        probe.detectedThickness = thick
-        probe.detectedRadius = dist
-        probe.detectedRadiusOffset = 0
-        probe.detectedMax = maxRad
-        probe.detectedMin = minRad
-        
-        local ax,ay = target.x-probe.x, target.y-probe.y
-        local vx,vy = vl.normalize(ax,ay)
-        local x,y = vx*probe.radMax,vy*probe.radMax 
-        local posRad = vl.angleTo(vx,vy)
-        local x,y = math.cos(posRad)*probe.radMax, math.sin(posRad)*probe.radMax
-        local leftOff = (math.pi*2)/100*(probe.accuracy/5)
-        probe.detectedAngle = posRad
-        probe.detectedDif = leftOff]]
-        
-        
         probe.target = target
     end
 end
@@ -171,11 +76,6 @@ end
 
 function p.loseTarget(probe)
     probe.target = nil
-    --[[probe.detectedThickness = 0
-    probe.detectedRadius = 0
-    probe.detectedRadiusOffset = 0
-    probe.detectedMax = 0
-    probe.detectedMin = 0]]
 end
 
 function p.ping(probe)
@@ -192,11 +92,6 @@ function p.update(probe,ents,dt)
         probe.target = server.getNewTarget(probe)
         p.ping(probe)
         probe.battery = probe.battery - 1
-        --[[if probe.target then
-            local v = probe
-            local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracy=v.accuracy,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
-            client.drawScanResult(newScan,state.game.scanMap)
-        end]]
     elseif complete and probe.battery == 0 then
         probe.isDead = true
         

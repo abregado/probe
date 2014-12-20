@@ -18,11 +18,13 @@ function m.new(owner,x,y,tx,ty,payload)
         o.accel = 100000
         o.v = 0
         o.visible = true
+        score.torps = score.torps +1
     else
         o.cb = m.deploy
         o.accel = 1000
         o.v = 0
         o.visible = false
+        score.probes = score.probes +1
     end
     
     

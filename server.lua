@@ -30,7 +30,7 @@ function s.requestUpdate(owner)
             table.insert(ownerSigs,v)
         end
     end
-    return ownerSigs,mustRedraw
+    return ownerSigs,mustRedraw,s.findPlayerShip(owner)
 end
 
 function s.methods.connect()
@@ -92,7 +92,8 @@ function s.newPlayer(owner)
     local newEnt = nil
     local rx = math.random(world.w/4,world.w/4*3)
     local ry = math.random(world.h/4,world.h/4*3)
-    newEnt = {x=rx,y=ry,isMoving=false,sig=5,owner=owner}
+    --newEnt = {x=rx,y=ry,isMoving=false,sig=5,owner=owner}
+    newEnt = sigEnt.new(rx,ry,"sig",owner)
     table.insert(s.ents,newEnt)
     table.insert(s.connections,{ID=owner,ship=newEnt})
     nextID = owner+1
@@ -112,19 +113,32 @@ function s.update(dt)
         elseif v.entType == "blast" then
             blast.update(v,s.ents,dt)
         elseif v.entType == "sig" then
-            if v.isMoving then
-                v.x = v.x-(entSpeed/dt/10000)
-            end
-            if v.x < 0 then v.x = v.x + screen.w end
+            sigEnt.move(v,dt)
+        elseif v.entType == "debris" then
+            sigEnt.move(v,dt)
         end
     end
     
     for i,v in ipairs(s.ents) do
         if v.isDead then
+            --[[if v.entType == "sig" or v.entType == "asteroid" then
+                local newEnt = sigEnt.new(v.x,v.y,"debris","environment")
+                table.insert(s.ents,newEnt)
+                newEnt = sigEnt.new(v.x,v.y,"debris","environment")
+                table.insert(s.ents,newEnt)
+                newEnt = sigEnt.new(v.x,v.y,"debris","environment")
+                table.insert(s.ents,newEnt)
+            end]]
             table.remove(s.ents,i)
             mustRedraw = true
         end
     end
+end
+
+function s.methods.playerShipMoveCommand(owner,tx,ty)
+    local pship = s.findPlayerShip(owner)
+    sigEnt.setNewDest(pship,tx,ty)
+    
 end
 
 function s.getNewTarget(probe)
@@ -134,15 +148,15 @@ function s.getNewTarget(probe)
     if target then
         newTarget = {}
         local dist = vl.dist(target.x,target.y,probe.x,probe.y)
-        local minRad = dist-(dist*(probe.accuracyD)/100)
-        local maxRad = dist+(dist*(probe.accuracyD)/100)
+        local minRad = dist-(dist*(probe.accuracyD*target.scanMod)/100)
+        local maxRad = dist+(dist*(probe.accuracyD*target.scanMod)/100)
         
         local ax,ay = target.x-probe.x, target.y-probe.y
         local vx,vy = vl.normalize(ax,ay)
         local x,y = vx*probe.radMax,vy*probe.radMax 
         local posRad = vl.angleTo(vx,vy)+circ
         local x,y = math.cos(posRad)*probe.radMax, math.sin(posRad)*probe.radMax
-        local leftOff = (math.pi*2)/100*(probe.accuracyR)
+        local leftOff = (math.pi*2)/100*(probe.accuracyR*target.scanMod)
         
         local rRad = math.random(minRad,maxRad)
         local minAng = posRad-leftOff+circ
@@ -150,6 +164,7 @@ function s.getNewTarget(probe)
         local dRad = posRad+(math.random()*leftOff*2)-leftOff
         
         newTarget.sig = target.sig
+        newTarget.scanMod = target.scanMod
         newTarget.x = probe.x+math.cos(dRad)*rRad
         newTarget.y = probe.y+math.sin(dRad)*rRad
         print (newTarget.x,newTarget.y,target.x,target.y)
@@ -159,6 +174,9 @@ function s.getNewTarget(probe)
 end
 
 function s.init()
+    score.torps=0
+    score.probes=0
+    s.ents={}
     local r1 = math.random()
     local r2 = math.random()
     local r3 = math.random()
@@ -166,10 +184,11 @@ function s.init()
 
     for i=1,3 do
         --r1 = math.random(1,screen.w)
-        r1 = screen.w
+        r1 = math.random(1,screen.w)
         r2 = math.random(1,screen.h)
 
-        local newEnt = {x=r1,y=r2,isMoving=true,sig=8,entType="sig",owner="npc"}
+        --local newEnt = {x=r1,y=r2,isMoving=true,sig=8,entType="sig",owner="npc"}
+        local newEnt = sigEnt.new(r1,r2,"sig","npc")
         table.insert(s.ents,newEnt)
     end
 
@@ -177,21 +196,11 @@ function s.init()
         r1 = math.random(1,screen.w)
         r2 = math.random(1,screen.h)
 
-        local newEnt = {x=r1,y=r2,isMoving=false,sig=5,entType="sig",owner="npc"}
+        --local newEnt = {x=r1,y=r2,isMoving=false,sig=5,entType="sig",owner="npc"}
+        local newEnt = sigEnt.new(r1,r2,"asteroid","environment")
         table.insert(s.ents,newEnt)
     end
-
-    --add random missiles
-    for i=1,3 do
-        r1 = math.random(1,screen.w)
-        r2 = math.random(1,screen.h)
-        r3 = math.random(1,screen.w)
-        r4 = math.random(1,screen.h)
-
-        local newM = missile.new(0,r1,r2,r3,r4,"torpedo")
-        table.insert(s.missiles,newM)
-    end
-    
+   
     print("server initialized")  
 end
 
