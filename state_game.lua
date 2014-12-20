@@ -9,9 +9,9 @@ local tubes = {{v = 0},{v = 0},{v = 0},{v = 0}}
 local entSpeed = 20
 
 local probeTypes = {}
-probeTypes[1] = {name="long",desc="Long Range Probe",cost=8}
-probeTypes[2] = {name="torpedo",desc="Active Torpedo",cost=20}
-probeTypes[3] = {name="range",desc="Precise Probe",cost=5}
+probeTypes[1] = {name="long",desc="Long Range Probe",cost=5,ammo=10,maxAmmo=10}
+probeTypes[2] = {name="range",desc="Precise Probe",cost=5,ammo=10,maxAmmo=10}
+probeTypes[3] = {name="torpedo",desc="Active Torpedo",cost=5,ammo=2,maxAmmo=2}
 
 local currentProbe = 1
 
@@ -48,29 +48,53 @@ function game:draw()
     for i,v in ipairs(game.ents) do
         if v.entType=="probe" then
             if v.target then
-                local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,accuracyD=v.accuracyD,accuracyR=v.accuracyR,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
+                local newScan = {x=v.x,y=v.y,tx=v.target.x,ty=v.target.y,range=v.radMax,accuracyD=v.accuracyD,accuracyR=v.accuracyR,rMin=v.radMin,rMax=v.radMax,alpha=v.alpha}
                 client.drawScanResult(newScan,game.scanMap)
             end
         end
     end
+    
+    lg.setFont(fonts[1])
     
     lg.setColor(color.weapons)
     lg.circle("fill",client.playerPos.x,client.playerPos.y,3,3)
     lg.circle("line",client.playerPos.x,client.playerPos.y,9,30)
     
     lg.setColor(color.probe) 
-    lg.print("Click with the right mouse buttons to launch probes and try to locate the 6 objects",5,5)
-    lg.print("Use the number keys to change Probe type",5,30)
-    lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,55)
-    lg.print("Targets in Area: "..server.countSigs(client.ownerID),5,80)
-    if countTubes() > 0 then
+    --lg.print("Click with the right mouse buttons to launch probes and try to locate the 6 objects",5,5)
+    --lg.print("Use the number keys to change Probe type",5,30)
+    --lg.print("Currently Selected Probe: "..probeTypes[currentProbe].desc,5,55)
+    --lg.print("Targets in Area: "..server.countSigs(client.ownerID),5,80)
+    
+    game.drawTubes(5,55)
+    
+    lg.setFont(fonts[2])
+    lg.setColor(color.probe)
+    lg.print(server.countSigs(client.ownerID),10,5)
+    lg.setFont(fonts[1])
+    lg.setColor(color.weapons)
+    lg.print("Targets remaining",35,10)
+    
+    
+end
+
+function game.drawTubes(x,y)
+    local tw = 15
+    local th = 30
+    local gap = 5
+    local tx,ty = x,y
+    for i,v in ipairs(tubes) do
         lg.setColor(color.debug)
-    else
+        lg.rectangle("fill",tx+(tw+gap),ty,tw,th)
         lg.setColor(color.probe)
+        local h = (th*v.v/5)
+        lg.rectangle("fill",tx+(tw+gap),ty,tw,h)
+        tx=tx+tw+gap
     end
-    lg.print("Launch Tubes Available: "..countTubes(),5,105)
     
-    
+    lg.setFont(fonts[1])
+    lg.setColor(color.weapons)
+    lg.print("Tubes",tx+tw+gap,ty+5)
     
 end
 

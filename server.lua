@@ -81,7 +81,7 @@ end
 function s.countSigs(owner)
     local result = 0
     for i,v in ipairs(s.ents) do
-        if v.owner ~= owner then
+        if v.owner ~= owner and v.entType=="sig" then
             result = result +1
         end
     end
@@ -90,8 +90,8 @@ end
 
 function s.newPlayer(owner)
     local newEnt = nil
-    local rx = math.random(0,world.w)
-    local ry = math.random(0,world.h)
+    local rx = math.random(world.w/4,world.w/4*3)
+    local ry = math.random(world.h/4,world.h/4*3)
     newEnt = {x=rx,y=ry,isMoving=false,sig=5,owner=owner}
     table.insert(s.ents,newEnt)
     table.insert(s.connections,{ID=owner,ship=newEnt})

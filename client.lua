@@ -60,6 +60,7 @@ function c.drawScanResult(sr)
     local detectedRadius = dist
     local detectedRadiusOffset = 0
     local detectedMax = maxRad
+    if sr.range < detectedMax then detectedMax = sr.range end
     local detectedMin = minRad
     
     local ax,ay = sr.tx-sr.x, sr.ty-sr.y

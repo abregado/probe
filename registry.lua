@@ -32,6 +32,7 @@ missile = require('missile')
 
 fonts = {}
 fonts[1] = lg.newFont(14)
+fonts[2] = lg.newFont(25)
 lg.setFont(fonts[1])
 
 --graphics globals

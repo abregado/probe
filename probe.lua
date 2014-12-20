@@ -10,7 +10,7 @@ function p.new(owner,x,y,scanType)
     o.x = x
     o.y = y
     o.owner = owner
-    o.battery = 10
+    
     o.entType="probe"
     
     --sensor variables THIS NEEDS A ARCHETYPE SYSTEM
@@ -18,15 +18,17 @@ function p.new(owner,x,y,scanType)
     if scanType == "range" then
         o.radMax = 200
         o.radMin = 10
-        o.accuracyD = 40
-        o.accuracyR = 1
+        o.accuracyD = 30
+        o.accuracyR = 2
         o.pingLength = 1
+        o.battery = 30
     else
         o.radMax = 600
         o.radMin = 100
         o.accuracyD = 3
         o.accuracyR = 30
         o.pingLength = 3
+        o.battery = 10
     end
     
     --these are set at each ping
