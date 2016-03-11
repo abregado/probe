@@ -10,8 +10,8 @@ game.player = nil
 game.selected_weapon = 1
 
 local probeTypes = {
-	{name="long",desc="Launch Long Range Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
-	{name="range",desc="Launch Precise Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
+	{name="lr_probe",desc="Launch Long Range Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
+	{name="sr_probe",desc="Launch Precise Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
 	{name="torpedo",desc="Launch Active Torpedo",cost=5,ammo=2,maxAmmo=2,color={0,0,255}}
 }
 
@@ -53,7 +53,7 @@ function game:draw()
 	
 	for i,ent in pairs(game.world.objects) do
 		if ent.entType == "probe" then
-			probe.draw_scan(ent)
+			--probe.draw_scan(ent)
 		end
 	end
 	
@@ -96,7 +96,7 @@ function game:mousepressed(x,y,button)
 		self.client:send_command('move',{method='move',target={x=x,y=y}})
 	elseif button == 2 then
 		--giveDeploy command
-		self.client:send_command('deploy',{method='deploy',ammo='torpedo',target={x=x,y=y}})
+		self.client:send_command('deploy',{method='deploy',ammo=probeTypes[game.selected_weapon].name,target={x=x,y=y}})
 	end
 end
 
@@ -111,13 +111,11 @@ function game:keypressed(key)
     elseif key == "escape" then
         gs.switch(state.menu)
     elseif key == "1" then
-        currentProbe = 1
+        game.selected_weapon = 1
     elseif key == "2" then
-        currentProbe = 2
+        game.selected_weapon = 2
     elseif key == "3" then
-        currentProbe = 3
-    elseif key == "4" then
-        currentProbe = 4
+        game.selected_weapon = 3
     end
 end
 

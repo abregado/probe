@@ -39,6 +39,8 @@ function m:deploy(peer,data)
 			local tube_heat = 5
 			if ammo == "torpedo" then 
 				payload = blast.new(target.x,target.y)
+			else 
+				payload = probe.new(username,target.x,target.y,ammo)
 			end 
 			
 			ship.useTube(tube,tube_heat)

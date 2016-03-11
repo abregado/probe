@@ -14,7 +14,7 @@ function p.new(owner,x,y,scanType)
     o.entType="probe"
     
     o.scanType = scanType
-    if scanType == "range" then
+    if scanType == "sr_probe" then
         o.radMax = 200
         o.radMin = 50
         o.accuracyD = 30
@@ -80,8 +80,8 @@ function p.update(probe,ents,dt)
     local complete = probe.pingTween:update(dt)
     
     if complete and probe.battery > 0 then
-        probe.target = server.getNewTarget(probe)
-        p.ping(probe)
+        --probe.target = server.getNewTarget(probe)
+        --p.ping(probe)
         probe.battery = probe.battery - 1
     elseif complete and probe.battery == 0 then
         probe.isDead = true
