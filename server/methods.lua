@@ -11,6 +11,34 @@ local m = {}
 	peer:send(serialize(update))
 end]]
 
+function m:refresh(peer,data)
+	local method = (data.method == 'refresh')
+	local username = data.username
+	local password = data.password
+	local id = peer:connect_id()
+	local user = self.users[id]
+	
+	if method and user and username == user.username and password == user.password then 
+		--create a subset of world and send it
+		local sub_world = World:new()
+		for i,obj in pairs(world.objects) do
+			if obj.owner == username or obj.visible then
+				table.insert(sub_world.objects,obj)
+			end
+		end
+		local update = {
+			method = 'refresh',
+			data = sub_world
+			}
+		peer:send(serialize(update))
+		return true
+	else
+		--something was missing from request
+	end
+	self:msg("could not process malformed refresh command")
+	return false
+end
+
 
 --deploy method handler
 function m:deploy(peer,data)

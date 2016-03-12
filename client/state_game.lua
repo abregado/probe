@@ -32,8 +32,8 @@ function game.init()
 end
 
 function game:enter(from,username,password)
-	game.username = username or 'default-username2'
-	game.password = password or 'default-password2'
+	game.username = username or 'default-username3'
+	game.password = password or 'default-password3'
 	game.client:login_details(game.username,game.password)
 	game.client:connect()
 	lg.setBackgroundColor(color.gameBG)
@@ -41,13 +41,19 @@ end
 
 function game:draw()
 	--drawCoverage
-	game.drawCoverage()
+	--game.drawCoverage()
 	
+	lg.setCanvas(game.scan_map)
+	lg.clear()
 	for i,ent in pairs(game.world.objects) do
 		if ent.entType == "probe" and ent.scan then
 			probe.draw_scan(ent)
 		end
 	end
+	lg.setCanvas()
+	lg.setColor(255,255,255)
+	lg.draw(game.scan_map)
+	lg.setLineWidth(1)
 	
 	--draw grid
 	game.drawGrid()
@@ -248,7 +254,7 @@ function game.drawCoverage()
 end
 
 function game.drawGrid()
-    lg.setColor(255,255,255,125)
+    lg.setColor(255,255,255,65)
     lg.draw(game.grid_map)
     lg.setColor(255,255,255)
 end

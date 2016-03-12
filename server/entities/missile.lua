@@ -13,7 +13,9 @@ function m.new(owner,x,y,tx,ty,payload)
     
 	o.accel = 1000
 	o.vel = 0
-	o.visible = 1
+	o.visible = 0
+	if payload and payload.entType == "blast" then o.visible = 1 end
+	
     o.payload = payload
     o.maxvel = 100000000
     

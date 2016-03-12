@@ -8,12 +8,15 @@ function m.new(owner,x,y,tx,ty,payload)
     o.delta = {}
     o.delta.x,o.delta.y = vl.normalize(tx-x,ty-y)
     o.isDead = false
+    o.scannable = false
     o.entType="missile"
     
 	o.accel = 1000
 	o.vel = 0
 	o.visible = 0
-    o.payload = nil
+	if payload and payload.entType == "blast" then o.visible = 1 end
+	
+    o.payload = payload
     o.maxvel = 100000000
     
     return o
@@ -35,8 +38,9 @@ function m.update(missile,ents,dt)
         missile.y = missile.y+ny
     end
     
-    if arrived and payload then
-		world:addObject(payload)
+    if arrived and missile.payload then
+		print("deploying payload")
+		world:addObject(missile.payload)
 		missile.isDead = true
 	elseif arrived then
 		missile.isDead = true

@@ -5,6 +5,8 @@ local maxAlpha = 255
 
 local lg = love.graphics
 
+local circ = math.pi*2
+
 function p.new(owner,x,y,scanType)
     o = {}
     o.x = x
@@ -14,20 +16,22 @@ function p.new(owner,x,y,scanType)
     o.entType="probe"
     
     o.scanType = scanType
+    o.visType = "point"
     if scanType == "sr_probe" then
         o.ranges = {
 			max = 200,
 			optimal = 150,
 			min = 50
 			}
+		--range is number of pixels the scan can be off
+		--angle is percent of a full circle it can be off
         o.accuracies = {
-			range = {min=0.5,max=1},
-			angle = {min=0.5,max=3}
+			range = 5,
+			angle = 15
 			}
-        o.accuracyD = 30
-        o.accuracyR = 2
-        o.pingLength = 2
-        o.battery = 10
+		o.visType = "arc"
+        o.pingLength = 0.5
+        o.battery = 30
     else
 		o.ranges = {
 			max = 600,
@@ -35,11 +39,10 @@ function p.new(owner,x,y,scanType)
 			min = 150
 			}
 		o.accuracies = {
-			range = {min=5,max=10},
-			angle = {min=0.5,max=1}
+			range = 200,
+			angle = 2
 			}
-        o.accuracyD = 3
-        o.accuracyR = 30
+        o.visType = "lighthouse"
         o.pingLength = 6
         o.battery = 10
     end
@@ -124,66 +127,60 @@ function p.findAccuracyAtRange(probe,range)
 end
 
 function p.create_scan(probe,target)
+	local x_off = math.random(-30,30)
+	local y_off = math.random(-30,30)
+	
+    return {x=target.x+x_off,y=target.y+y_off,dist=10,angle=1}
+end
+
+function p.create_scan(probe,target)
     local tx = target.x - probe.x
     local ty = target.y - probe.y
-    local circ = math.pi*2
     
-    --apply random inaccuracy to target distance and angle
-    
+    --find angle to target
+    local angle = vl.angleTo(tx,ty)
     --find distance to target
     local dist = vl.dist(tx,ty,0,0)
     
-    --calculate inaccuracies at this range
-    --local accuracy = p.findAccuracyAtRange(probe,dist)
-    local accuracy = 0.95
-    --apply inacuracy to distance
-    local dist_offset_max = dist*((1-accuracy)*(probe.accuracies.range.max-probe.accuracies.range.min))
-    local dist_offset_min = dist*((1-accuracy)*(probe.accuracies.range.min))
-    local dist_offset = math.random(dist-dist_offset_max,dist+dist_offset_max)+math.random(-dist_offset_min,dist_offset_min)
-    --find angle to target
-    local angle = vl.angleTo(tx,ty)+circ
+    
+    --apply random inaccuracy to target distance and angle
+    local angle_variation = circ/100*probe.accuracies.angle
+	local dist_variation = probe.accuracies.range
+
+    
+    --find new random distance
+    local dist_offset = dist+(math.random()*dist_variation*2)-dist_variation
     --apply innacuracy to angle
-    local angle_offset_max = angle*((1-accuracy)*(probe.accuracies.angle.max-probe.accuracies.angle.min))
-    local angle_offset_min = angle*((1-accuracy)*probe.accuracies.angle.min)
-    local angle_offset = math.random(angle-angle_offset_max,angle+angle_offset_max)+math.random(-angle_offset_min,angle_offset_min)
+    local angle_offset = angle+(math.random()*angle_variation*2)-angle_variation
     
     local x,y = math.cos(angle_offset)*dist_offset, math.sin(angle_offset)*dist_offset
     
-    return {dist=dist_offset,angle=angle_offset,x=x+probe.x,y=y+probe.y}
+    return {dist=dist_offset,angle=angle_offset,x=x+probe.x,y=y+probe.y,ang_var=angle_variation,dist_var=dist_variation}
 end
 
 function p.draw_scan(probe)
-	--local temp_canvas = lg.newCanvas()
-    --lg.setCanvas(temp_canvas)
-    local dist = probe.scan.dist
-    local angle = probe.scan.angle
-    
-    local circ = math.pi*4
-	--local accuracy = p.findAccuracyAtRange(probe,dist)
-	local accuracy = 0.95
-	local dist_offset_max = dist*((1-accuracy)*(probe.accuracies.range.max))
-    local angle_offset_max = angle*((1-accuracy)*probe.accuracies.angle.max)
+	local x,y = probe.x,probe.y
+	local dist = probe.scan.dist
+	local dist_var = probe.scan.dist_var
+	local angle = probe.scan.angle
+	local angle_var = probe.scan.ang_var
+	lg.setColor(color.scan)
+		
 	
-	local maxAng = probe.scan.angle+angle_offset_max+circ
-	local minAng = probe.scan.angle-angle_offset_max+circ
-	local maxDist = math.clamp(probe.ranges.min,probe.scan.dist+dist_offset_max,probe.ranges.max)
-	local minDist = probe.scan.dist-dist_offset_max
-	if minDist < tonumber(probe.ranges.min) then minDist = probe.ranges.min end
-
+	if probe.visType == "arc" then
+		lg.setLineWidth(dist_var*2)
+		lg.arc("line","open",x,y,dist,angle-angle_var+circ,angle+angle_var+circ,50)
+	elseif probe.visType == "lighthouse" then
+		lg.arc("fill","pie",x,y,dist+dist_var,angle-angle_var+circ,angle+angle_var+circ,50)
+	elseif probe.visType == "circle" then
+		x,y = probe.scan.x,probe.scan.y
+		lg.circle("fill",x,y,dist_var,4)
+	end
 	
-	lg.setColor(color.scan[1],color.scan[2],color.scan[3],probe.alpha)
-	lg.setBlendMode("alpha")
-	lg.arc('fill',"pie",probe.x,probe.y,maxDist,minAng,maxAng,50)
-	lg.setColor(color.white)
-	lg.setBlendMode("subtract")
-	lg.circle('fill',probe.x,probe.y,minDist,50)
-	lg.setBlendMode("alpha")
-	
-	--lg.setCanvas()
-    --lg.setColor(255,255,255)
-    --lg.draw(temp_canvas)
-    
+	lg.setLineWidth(1)
+	lg.setColor(255,255,255)
 end
+
 
 function p.draw(probe)
 	local variant = probe.scanType

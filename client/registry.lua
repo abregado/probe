@@ -70,5 +70,5 @@ color.white = {255,255,255}
 color.black = {0,0,0}
 color.weapons = {0,0,255}
 color.probeCoverage={255,0,0,125}
-color.scan = {255,0,0}
+color.scan = {255,0,0,50}
 color.grid = {65,129,127}

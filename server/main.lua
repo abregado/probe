@@ -10,6 +10,7 @@ function love.load()
     server:register_method("move",function(self,peer,data) methods.move(self,peer,data) end)
     server:register_method("respawn",function(self,peer,data) methods.respawn(self,peer,data) end)
     server:register_method("deploy",function(self,peer,data) methods.deploy(self,peer,data) end)
+    server:register_method("refresh",function(self,peer,data) methods.refresh(self,peer,data) end)
     
     
     --test ships
