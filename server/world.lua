@@ -50,4 +50,17 @@ function w:findOwnedObjects(owner,entType)
 	return results
 end
 
+function w:findClosestObject(x,y)
+	local dist = 100000
+	local target = nil
+	for i,obj in pairs(self.objects) do
+		local d = vl.dist(x,y,obj.x,obj.y)
+		if d < dist then
+			dist = d
+			target = obj
+		end
+	end
+	return target
+end
+
 return w

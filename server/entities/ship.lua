@@ -11,16 +11,18 @@ function se.new(x,y,owner)
     o.owner=owner or "npc"
     o.scanMod = 1
     o.scannable = true
+    o.vel = 15
     
     if owner == "npc" or owner == "environment" then
         o.isHuman = false
         o.rx = 0
         o.ry = 0
+        o.vel = 5
     end
     
     o.target = {x=x+1,y=y+1}
     o.delta = {x=0,y=0}
-    o.vel = 15
+    
     o.isMoving = 1
     o.canMove = 1
     o.tubes = {{v = 0},{v = 0},{v = 0},{v = 0}}  
@@ -57,8 +59,8 @@ function se.update(sig,ents,dt)
     
     
     if arrived and not sig.isHuman then
-        local rx = math.random(100,500)
-        local ry = math.random(100,500)
+        local rx = math.random(1000,3000)
+        local ry = math.random(1000,3000)
         se.setNewDest(sig,rx,ry)
     elseif arrived and sig.isHuman then
         sig.isMoving = 0

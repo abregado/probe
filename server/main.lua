@@ -14,16 +14,10 @@ function love.load()
     
     
     --test ships
-	for i=1,1 do
-	    local x,y = math.random(100,500),math.random(100,500)
+	for i=1,7 do
+	    local x,y = math.random(1500,2500),math.random(1500,2500)
 		local newship = ship.new(x,y,"npc")
 		world:addObject(newship)
-	end
-	for i=1,1 do
-	    local x,y = math.random(200,400),math.random(200,400)
-		local newship = probe.new("player1",x,y,"sr_probe")
-		--newship.battery = 10000
-		--world:addObject(newship)
 	end
 	
 end

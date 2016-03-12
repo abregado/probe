@@ -8,12 +8,12 @@ game.username = 'default-username'
 game.password = 'default-password'
 game.player = nil
 game.selected_weapon = 1
+game.buttons = {}
+game.buttons[1] = false
+game.buttons[2] = false
 
-local probeTypes = {
-	{name="lr_probe",desc="Launch Long Range Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
-	{name="sr_probe",desc="Launch Precise Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0}},
-	{name="torpedo",desc="Launch Active Torpedo",cost=5,ammo=2,maxAmmo=2,color={0,0,255}}
-}
+local probeTypes = {}
+
 
 
 function game.init()
@@ -29,6 +29,15 @@ function game.init()
 	game.grid_map = game.createGrid()
 	game.scan_map = lg.newCanvas()
 	game.coverage_map = lg.newCanvas()
+	
+	player_cam = Camera(0,0)
+	
+	probeTypes = {
+		{name="lr_probe",desc="Launch Long Range Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0},ranges={min=400,max=1600,color=color.scan}},
+		{name="sr_probe",desc="Launch Precise Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0},ranges={min=100,max=300,color=color.scan}},
+		{name="torpedo",desc="Launch Active Torpedo",cost=5,ammo=2,maxAmmo=2,color={0,0,255},ranges={min=15,max=15,color=color.weapons}},
+		{name="examine",desc="Examine Object",cost=5,ammo=2,maxAmmo=2,color={255,0,255}}
+	}
 end
 
 function game:enter(from,username,password)
@@ -37,26 +46,54 @@ function game:enter(from,username,password)
 	game.client:login_details(game.username,game.password)
 	game.client:connect()
 	lg.setBackgroundColor(color.gameBG)
+	
+	game.grid_map = lg.newCanvas(4000,4000)
+	lg.setCanvas(game.grid_map)
+	lg.setColor(255,255,255)
+	game.drawGrid()
+	lg.setColor(255,255,255)
+	lg.setCanvas()
+	
+	game.scan_map = lg.newCanvas(4000,4000)
+end
+
+function game.frustrum(screen,x,y)
+	local x,y = tonumber(x),tonumber(y)
+	if x > screen.x and x < screen.x+screen.w and y > screen.y and y < screen.y+screen.h then
+		return true
+	end
+	return false
 end
 
 function game:draw()
+	local screen = {}
+	screen.x,screen.y = player_cam:worldCoords(0,0)
+	screen.w,screen.h = lg.getWidth(),lg.getHeight()
+	
+	
+	
 	--drawCoverage
 	--game.drawCoverage()
-	
 	lg.setCanvas(game.scan_map)
 	lg.clear()
+	lg.setBlendMode("alpha")
 	for i,ent in pairs(game.world.objects) do
-		if ent.entType == "probe" and ent.scan then
+		if ent.entType == "probe" and ent.scan and game.frustrum(screen,ent.scan.x,ent.scan.y) then
 			probe.draw_scan(ent)
 		end
 	end
 	lg.setCanvas()
+	
+	player_cam:attach()
+	lg.setBlendMode("alpha")
 	lg.setColor(255,255,255)
+	lg.draw(game.grid_map)
 	lg.draw(game.scan_map)
 	lg.setLineWidth(1)
 	
 	--draw grid
-	game.drawGrid()
+	--game.drawGrid()
+	
 	--set fonts to default small
 	lg.setFont(fonts[1])
 	--draw objects from game.world
@@ -69,13 +106,43 @@ function game:draw()
 	if game.player then 
 		--draw player ship and movement ui
 		game.drawPlayer()
-		lg.circle("line",game.player.x,game.player.y,13,50)
-		--draw tubeUI
-		game.drawTubeUI(5,55)
-		--draw weaponUI
-		game.drawWeaponUI(5,95)
+		lg.circle("line",game.player.x,game.player.y,13,50)	
 	end
 	
+	local mx,my = love.mouse.getPosition()
+	mx,my = player_cam:worldCoords(mx,my)
+		
+	if game.buttons[2] and game.selected_weapon == 4 then	
+		local closest = World.findClosestObject(game.world,mx,my)
+		if closest then
+			lg.setColor(0,255,255)
+			local angle = vl.angleTo(mx-closest.x,my-closest.y)
+			local x,y = math.cos(angle)*25, math.sin(angle)*25
+    
+			lg.circle("line",closest.x,closest.y,25,30)
+			lg.line(mx,my,closest.x+x,closest.y+y)
+			lg.print(closest.entType,closest.x+25,closest.y-25)
+			
+		end
+	elseif game.buttons[2] and game.selected_weapon < 4 then
+		local weap = probeTypes[game.selected_weapon]
+		lg.setColor(weap.color[1],weap.color[2],weap.color[3],100)
+		lg.circle("line",mx,my,weap.ranges.min,50)
+		lg.circle("line",mx,my,weap.ranges.max,50)
+		lg.circle("line",mx,my,weap.ranges.max+3,50)
+		lg.setColor(255,255,255)
+	end
+	
+	player_cam:detach()
+	
+	if game.player then 
+		--draw tubeUI
+		game.drawTubeUI(5,5)
+		--draw weaponUI
+		game.drawWeaponUI(5,45)
+	end
+	
+
 end
 
 function game:update(dt)
@@ -83,6 +150,9 @@ function game:update(dt)
 	
 	--find player ship (object that is owned by player)
 	game.player = game:findPlayer()
+	if game.player then
+		player_cam:lookAt(game.player.x,game.player.y)
+	end
 	--if no playership then defeat
 	--if game.player == nil then gs.switch(state_defeat) end
 	
@@ -99,13 +169,30 @@ function game:leave()
 end
 
 function game:mousepressed(x,y,button)
-	if button == 1 then
+	local x,y = player_cam:worldCoords(x,y)
+	if button == 1 and game.buttons[2] == false then
 		--giveMoveCommand
 		self.client:send_command('move',{method='move',target={x=x,y=y}})
+	elseif button == 1 and game.buttons[2] then
+		game.buttons[2] = false
 	elseif button == 2 then
-		--giveDeploy command
-		self.client:send_command('deploy',{method='deploy',ammo=probeTypes[game.selected_weapon].name,target={x=x,y=y}})
+		game.buttons[2] = true
 	end
+end
+
+function game:mousereleased(x,y,button)
+	local x,y = player_cam:worldCoords(x,y)
+	if game.buttons[2] then
+		if button == 2 and game.selected_weapon < 4 then
+			--giveDeploy command
+			self.client:send_command('deploy',{method='deploy',ammo=probeTypes[game.selected_weapon].name,target={x=x,y=y}})
+			game.buttons[2] = false
+		end
+	elseif button == 2 then
+		game.buttons[2] = false
+	end
+		
+	
 end
 
 function game:keypressed(key)
@@ -124,6 +211,8 @@ function game:keypressed(key)
         game.selected_weapon = 2
     elseif key == "3" then
         game.selected_weapon = 3
+    elseif key == "4" then
+        game.selected_weapon = 4
     end
 end
 
@@ -173,21 +262,23 @@ end
 
 function game.createGrid()
 	local grid_canvas = lg.newCanvas()
+	lg.setLineWidth(2)
     lg.setCanvas(grid_canvas)
-    local x = 0
-    local y = 0
+    local x = -1250
+    local y = -1250
     local grid = 128
-    while x < lg.getWidth() do
+    while x < 1250 do
         lg.setColor(color.grid)
-        lg.line(x,0,x,lg.getHeight())
+        lg.line(x,-1250,x,1250)
         x = x + grid
     end
-    while y < lg.getHeight() do
+    while y < 1250 do
         lg.setColor(color.grid)
-        lg.line(0,y,lg.getWidth(),y)
+        lg.line(-1250,y,1250,y)
         y = y + grid
     end
     lg.setCanvas()
+    lg.setLineWidth(1)
     return grid_canvas
 end
 
@@ -254,9 +345,37 @@ function game.drawCoverage()
 end
 
 function game.drawGrid()
-    lg.setColor(255,255,255,65)
-    lg.draw(game.grid_map)
-    lg.setColor(255,255,255)
+	lg.setColor(color.grid)
+	lg.setLineWidth(3)
+	lg.circle('line',2000,2000,10,30)
+	for i=1,30 do
+		lg.circle('line',2000,2000,i*128,30*i)
+	end
+	
+	local chunk = math.pi/16
+	for i=1,32 do
+		local x,y = math.cos(chunk*i)*3900, math.sin(chunk*i)*3900
+		lg.line(2000,2000,x+2000,y+2000)
+	end
+	
+	for i=1,30 do
+		lg.setLineWidth(32)
+		lg.setColor(color.black)
+		lg.circle('line',2000,2000,64+(i*128),30*i)
+	end
+
+	for i=1,32 do
+		local x,y = math.cos((chunk*i)+(chunk/2))*3000, math.sin((chunk*i)+(chunk/2))*3000
+		lg.line(2000,2000,x+2000,y+2000)
+	end
+	
+	lg.setLineWidth(3)
+	lg.setColor(color.black)
+	lg.circle('fill',2000,2000,120,60)
+	lg.setColor(color.grid)
+	lg.circle('line',2000,2000,10,30)
+
+	lg.setLineWidth(1)
 end
 
 function game.drawEnt(ent)

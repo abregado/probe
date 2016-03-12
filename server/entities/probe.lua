@@ -19,14 +19,14 @@ function p.new(owner,x,y,scanType)
     o.visType = "point"
     if scanType == "sr_probe" then
         o.ranges = {
-			max = 200,
+			max = 300,
 			optimal = 150,
-			min = 50
+			min = 100
 			}
 		--range is number of pixels the scan can be off
 		--angle is percent of a full circle it can be off
         o.accuracies = {
-			range = 5,
+			range = 15,
 			angle = 15
 			}
 		o.visType = "arc"
@@ -34,13 +34,13 @@ function p.new(owner,x,y,scanType)
         o.battery = 30
     else
 		o.ranges = {
-			max = 600,
+			max = 1600,
 			optimal = 300,
-			min = 150
+			min = 400
 			}
 		o.accuracies = {
 			range = 200,
-			angle = 2
+			angle = 4
 			}
         o.visType = "lighthouse"
         o.pingLength = 6

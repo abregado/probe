@@ -19,19 +19,27 @@ function m:refresh(peer,data)
 	local user = self.users[id]
 	
 	if method and user and username == user.username and password == user.password then 
-		--create a subset of world and send it
-		local sub_world = World:new()
-		for i,obj in pairs(world.objects) do
-			if obj.owner == username or obj.visible then
-				table.insert(sub_world.objects,obj)
+		--find player ship
+		local objects = world:findOwnedObjects(username,"ship")
+		if #objects > 0 then
+			local player = objects[1]
+			--create a subset of world and send it
+			local sub_world = World:new()
+			for i,obj in pairs(world.objects) do
+				if obj.owner == username or obj.visible then
+					table.insert(sub_world.objects,obj)
+				end
 			end
+			local update = {
+				method = 'refresh',
+				data = sub_world
+				}
+			peer:send(serialize(update))
+			return true
+		else
+			self:msg("cant send refresh to player with no ship")
+			return false
 		end
-		local update = {
-			method = 'refresh',
-			data = sub_world
-			}
-		peer:send(serialize(update))
-		return true
 	else
 		--something was missing from request
 	end
@@ -104,7 +112,7 @@ function m:move(peer,data)
 		local objects = world:findOwnedObjects(username,"ship")
 		if #objects > 0 then
 			local player = objects[1]
-			--set ship destination using origin
+			--set ship destination 
 			ship.setNewDest(player,target.x,target.y)
 			self:msg("move requested by "..username)
 			return true
@@ -132,7 +140,7 @@ function m:respawn(peer,data)
 		local player = owned_objects[1]
 		if not player then
 			--spawn player ship
-			local x,y = math.random(100,400),math.random(100,400)
+			local x,y = math.random(1500,2500),math.random(1500,2500)
 			local newship = ship.new(x,y,username)
 			world:addObject(newship)
 			self:msg("respawned player "..username)
