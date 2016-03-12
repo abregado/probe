@@ -8,6 +8,7 @@ function m.new(owner,x,y,tx,ty,payload)
     o.delta = {}
     o.delta.x,o.delta.y = vl.normalize(tx-x,ty-y)
     o.isDead = false
+    o.scannable = false
     o.entType="missile"
     
 	o.accel = 1000

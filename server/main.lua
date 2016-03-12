@@ -13,11 +13,18 @@ function love.load()
     
     
     --test ships
-	for i=1,3 do
-	    local x,y = math.random(1000),math.random(1000)
+	for i=1,1 do
+	    local x,y = math.random(100,500),math.random(100,500)
 		local newship = ship.new(x,y,"npc")
 		world:addObject(newship)
 	end
+	for i=1,1 do
+	    local x,y = math.random(200,400),math.random(200,400)
+		local newship = probe.new("player1",x,y,"sr_probe")
+		--newship.battery = 10000
+		--world:addObject(newship)
+	end
+	
 end
 
 function love.quit()
@@ -44,6 +51,10 @@ function love.draw()
 		lg.circle("fill",obj.x,obj.y,3,5)
 		if obj.isMoving then
 			lg.line(obj.x,obj.y,obj.target.x,obj.target.y)
+		end
+		if obj.scan then
+			lg.setColor(obj_types["asteroid"])
+			lg.circle("fill",obj.scan.x,obj.scan.y,8,3)
 		end
 	end
 	

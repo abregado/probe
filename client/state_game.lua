@@ -42,6 +42,13 @@ end
 function game:draw()
 	--drawCoverage
 	game.drawCoverage()
+	
+	for i,ent in pairs(game.world.objects) do
+		if ent.entType == "probe" and ent.scan then
+			probe.draw_scan(ent)
+		end
+	end
+	
 	--draw grid
 	game.drawGrid()
 	--set fonts to default small
@@ -51,11 +58,6 @@ function game:draw()
 		game.drawEnt(ent)
 	end
 	
-	for i,ent in pairs(game.world.objects) do
-		if ent.entType == "probe" then
-			--probe.draw_scan(ent)
-		end
-	end
 	
 	
 	if game.player then 
@@ -214,10 +216,10 @@ function game.addCoverage(probe)
     lg.setCanvas(tCan)
     lg.setColor(color.probeCoverage)
     lg.setBlendMode("alpha")
-    lg.circle("fill",probe.x,probe.y,probe.radMax,50)
+    lg.circle("fill",probe.x,probe.y,probe.ranges.max,50)
     lg.setLineWidth(5)
     lg.setBlendMode("subtract")
-    lg.circle("fill",probe.x,probe.y,probe.radMin,50)
+    lg.circle("fill",probe.x,probe.y,probe.ranges.min,50)
     lg.setBlendMode("alpha")
     lg.setLineWidth(1)
     lg.setColor(255,255,255)
@@ -231,9 +233,9 @@ function game.addRangeCircles(probe)
     lg.setCanvas(game.coverage_map)
     lg.setLineWidth(1)
     lg.setBlendMode("subtract")
-    lg.circle("line",probe.x,probe.y,probe.radMax,150)
-    lg.circle("line",probe.x,probe.y,probe.radMin+3,150)
-    lg.circle("line",probe.x,probe.y,probe.radMin,150)
+    lg.circle("line",probe.x,probe.y,probe.ranges.max,150)
+    lg.circle("line",probe.x,probe.y,probe.ranges.min+3,150)
+    lg.circle("line",probe.x,probe.y,probe.ranges.min,150)
     lg.setBlendMode("alpha")
     lg.setLineWidth(1)
     lg.setCanvas()

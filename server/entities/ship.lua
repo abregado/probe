@@ -10,6 +10,7 @@ function se.new(x,y,owner)
     o.entType="ship"
     o.owner=owner or "npc"
     o.scanMod = 1
+    o.scannable = true
     
     if owner == "npc" or owner == "environment" then
         o.isHuman = false
@@ -56,8 +57,8 @@ function se.update(sig,ents,dt)
     
     
     if arrived and not sig.isHuman then
-        local rx = math.random(1000)
-        local ry = math.random(1000)
+        local rx = math.random(100,500)
+        local ry = math.random(100,500)
         se.setNewDest(sig,rx,ry)
     elseif arrived and sig.isHuman then
         sig.isMoving = 0

@@ -11,6 +11,7 @@ function b.new(x,y)
     o.isDead = false
     o.entType = "blast"
     o.visible = true
+    o.scannable = true
     
     o.tween = tween.new(o.blastTime,o,{radius=o.maxRad},'outQuad')
     

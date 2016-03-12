@@ -37,3 +37,6 @@ function spairs(t, order)
         end
     end
 end
+
+function math.clamp(low, n, high) return math.min(math.max(low, n), high) end
+ 

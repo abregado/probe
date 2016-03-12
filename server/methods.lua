@@ -104,7 +104,7 @@ function m:respawn(peer,data)
 		local player = owned_objects[1]
 		if not player then
 			--spawn player ship
-			local x,y = math.random(1000),math.random(1000)
+			local x,y = math.random(100,400),math.random(100,400)
 			local newship = ship.new(x,y,username)
 			world:addObject(newship)
 			self:msg("respawned player "..username)
