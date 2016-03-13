@@ -51,7 +51,7 @@ function m.update(missile,ents,dt)
 end
 
 function m.draw(v)
-    if v.visible == 1 then
+    if tonumber(v.visible) == 1 then
         lg.setColor(color.weapons)
     else
         lg.setColor(color.probe)

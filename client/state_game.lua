@@ -30,7 +30,7 @@ function game.init()
 	game.scan_map = lg.newCanvas()
 	game.coverage_map = lg.newCanvas()
 	
-	player_cam = Camera(0,0)
+	player_cam = Camera(2000,2000)
 	
 	probeTypes = {
 		{name="lr_probe",desc="Launch Long Range Probe",cost=5,ammo=10,maxAmmo=10,color={255,0,0},ranges={min=400,max=1600,color=color.scan}},
@@ -40,9 +40,9 @@ function game.init()
 	}
 end
 
-function game:enter(from,username,password)
-	game.username = username or 'default-username3'
-	game.password = password or 'default-password3'
+function game:enter(from)
+	game.username = string.random(10,'%l%d')
+	game.password = string.random(10,'%l%d')
 	game.client:login_details(game.username,game.password)
 	game.client:connect()
 	lg.setBackgroundColor(color.gameBG)
@@ -107,6 +107,8 @@ function game:draw()
 		--draw player ship and movement ui
 		game.drawPlayer()
 		lg.circle("line",game.player.x,game.player.y,13,50)	
+	else
+		
 	end
 	
 	local mx,my = love.mouse.getPosition()
@@ -140,6 +142,23 @@ function game:draw()
 		game.drawTubeUI(5,5)
 		--draw weaponUI
 		game.drawWeaponUI(5,45)
+		
+		if game.world.count then
+			lg.setColor(color.white)
+			lg.setFont(fonts[2])
+			lg.print("Stealth signatures in area: "..game.world.count,5,85)
+		end
+	else
+		lg.setColor(color.weapons)
+		lg.rectangle("fill",0,lg.getHeight()/2-40,lg.getWidth(),80)
+		lg.setColor(color.black)
+		lg.rectangle("fill",0,lg.getHeight()/2-30,lg.getWidth(),60)
+		lg.setColor(color.white)
+		local text = "You have no ship in this sector, press SPACE to warp in"
+		local texth = fonts[2]:getHeight(text)
+		local textw = fonts[2]:getWidth(text)
+		lg.setFont(fonts[2])
+		lg.print(text,(lg.getWidth()/2)-(textw/2),(lg.getHeight()/2)-(texth/2))
 	end
 	
 
@@ -158,7 +177,7 @@ function game:update(dt)
 	
 	if processed then
 		--redrawCoverageMap
-		game.redrawCoverage()
+		--game.redrawCoverage()
 	end
 	
 	self.client:send_command('refresh',{method='refresh'})
@@ -198,9 +217,7 @@ end
 function game:keypressed(key)
     if key == "space" then
 		--request a server refresh or respawn if no ship
-		if not game.player then
-			self.client:send_command('respawn',{method='respawn'})
-		end
+		self.client:send_command('respawn',{method='respawn'})
 	elseif key == 'c' then
 		self.client:connect()
     elseif key == "escape" then
@@ -387,6 +404,8 @@ function game.drawEnt(ent)
         ship.draw(ent)
     elseif ent.entType == "missile" then
         missile.draw(ent)
+    elseif ent.entType == "asteroid" then
+        asteroid.draw(ent)
     else
 		--unknown entType so draw a white circle
 		lg.setColor(255,255,255)

@@ -1,6 +1,6 @@
 DEBUG_MODE = false
 
-Client = require 'lib.client'
+
 
 --global declarations
 la = love.audio
@@ -22,13 +22,18 @@ require('lib.extraUtils')
 require 'lib.serialize'
 methods = require 'methods'
 Camera = require 'hump-master.camera'
+Client = require 'lib.client'
+World = require 'world'
 
 --game entities
 probe = require('entities.probe')
 blast = require('entities.blast')
 missile = require('entities.missile')
 ship = require('entities.ship')
+asteroid = require('entities.asteroid')
 
+--game world
+world = World.new()
 
 fonts = {}
 fonts[1] = lg.newFont(14)
@@ -72,4 +77,5 @@ color.black = {0,0,0}
 color.weapons = {0,0,255}
 color.probeCoverage={255,0,0,125}
 color.scan = {255,0,0,50}
-color.grid = {65,129,127,65}
+color.grid = {65,129,127,75}
+color.asteroid = {128, 60, 21}

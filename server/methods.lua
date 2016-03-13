@@ -25,9 +25,13 @@ function m:refresh(peer,data)
 			local player = objects[1]
 			--create a subset of world and send it
 			local sub_world = World:new()
+			sub_world.count = 0
 			for i,obj in pairs(world.objects) do
 				if obj.owner == username or obj.visible then
 					table.insert(sub_world.objects,obj)
+				end
+				if obj.entType == 'ship' then
+					sub_world.count = sub_world.count + 1
 				end
 			end
 			local update = {
@@ -37,7 +41,11 @@ function m:refresh(peer,data)
 			peer:send(serialize(update))
 			return true
 		else
-			self:msg("cant send refresh to player with no ship")
+			local update = {
+				method = 'refresh',
+				data = World.new()
+				}
+			peer:send(serialize(update))
 			return false
 		end
 	else

@@ -20,6 +20,15 @@ function love.load()
 		world:addObject(newship)
 	end
 	
+	for i=1,200 do
+		local dist = 1900+(math.random()*300)
+		local speed = 0.025+(math.random()*0.025)
+		local rot = math.pi+(math.random()*math.pi*2/4*3)
+		local ast = asteroid.new(200,3500,dist,speed,rot)
+		
+		table.insert(world.objects,ast)
+	end
+	
 end
 
 function love.quit()

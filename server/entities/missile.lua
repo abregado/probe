@@ -11,10 +11,11 @@ function m.new(owner,x,y,tx,ty,payload)
     o.scannable = false
     o.entType="missile"
     
-	o.accel = 1000
+	o.accel = 50
+	o.color = color.probe
 	o.vel = 0
 	o.visible = 0
-	if payload and payload.entType == "blast" then o.visible = 1 end
+	if payload and payload.entType == "blast" then o.visible = 1 o.accel = 200 o.color = color.weapons end
 	
     o.payload = payload
     o.maxvel = 100000000

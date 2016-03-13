@@ -5,8 +5,8 @@ end
 
 function love.load()  
     gs.registerEvents()
-    gs.switch(state.menu)
     math.randomseed(DEBUG_MODE and 1000 or os.time())
+    gs.switch(state.menu)
 end
 
 function love.quit()

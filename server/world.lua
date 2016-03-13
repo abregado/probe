@@ -18,6 +18,7 @@ function w:update(dt)
 	update_list["ship"] = ship.update
 	update_list["probe"] = probe.update
 	update_list["blast"] = blast.update
+	update_list["asteroid"] = asteroid.update
 	
 	--update all objects
 	for i,obj in pairs(self.objects) do
@@ -28,6 +29,17 @@ function w:update(dt)
 	--garbage collection
 	for i,obj in pairs(self.objects) do
 		if obj.isDead then
+			if obj.entType == "asteroid" then
+				local dist = 1900+(math.random()*300)
+				local speed = 0.025+(math.random()*0.025)
+				local rot = math.pi+(math.random()*math.pi*2/4*3)
+				local ast = asteroid.new(200,3500,dist,speed,rot)
+				self:addObject(ast)
+			elseif obj.entType == "ship" and obj.owner == "npc" then
+				local x,y = math.random(1500,2500),math.random(1500,2500)
+				local newship = ship.new(x,y,"npc")
+				self:addObject(newship)
+			end
 			table.remove(self.objects,i)
 		end
 	end

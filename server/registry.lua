@@ -29,6 +29,7 @@ probe = require('entities.probe')
 blast = require('entities.blast')
 missile = require('entities.missile')
 ship = require('entities.ship')
+asteroid = require('entities.asteroid')
 
 --game world
 world = World.new()
@@ -76,3 +77,4 @@ color.weapons = {0,0,255}
 color.probeCoverage={255,0,0,125}
 color.scan = {255,0,0}
 color.grid = {65,129,127}
+color.asteroid = {128, 60, 21}
